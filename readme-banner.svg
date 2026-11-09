@@ -1,5 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-labelledby="title desc">
-<title id="title">Code Intelligence / Systems</title><desc id="desc">Typed contracts, explicit authority, and inspectable execution.</desc>
-<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1120"/><stop offset="1" stop-color="#16213a"/></linearGradient><pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#9cafd0" stroke-opacity=".05"/></pattern></defs>
-<rect x="1" y="1" width="1198" height="258" rx="18" fill="url(#bg)" stroke="#2d3b56"/><rect x="2" y="2" width="1196" height="256" rx="17" fill="url(#grid)"/>
-<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"><rect x="48" y="38" width="5" height="17" rx="2" fill="#a5acff"/><text x="68" y="51" fill="#a3b4cf" font-size="11" letter-spacing="2.5">JOSONGMIN / ENGINEERING</text><text x="46" y="126" fill="#f2f6ff" font-size="35" font-weight="700" letter-spacing="-1">Code Intelligence / Systems</text><text x="49" y="164" fill="#b8c7e0" font-size="16">Typed contracts, explicit authority, and inspectable execution.</text><path d="M49 195H740" stroke="#2b3a55"/><text x="49" y="224" fill="#a5acff" font-size="11" letter-spacing="2">SOURCE / CONTRACTS / ARCHITECTURE</text><rect x="852" y="40" width="285" height="46" rx="10" fill="#142039" stroke="#344564"/><circle cx="872" cy="63" r="3" fill="#a5acff"/><text x="894" y="68" fill="#d8e4f7" font-size="14">Code intelligence</text><path d="M994 86V106" stroke="#526684"/><rect x="852" y="106" width="285" height="46" rx="10" fill="#142039" stroke="#344564"/><circle cx="872" cy="129" r="3" fill="#a5acff"/><text x="894" y="134" fill="#d8e4f7" font-size="14">Execution infrastructure</text><path d="M994 152V172" stroke="#526684"/><rect x="852" y="172" width="285" height="46" rx="10" fill="#142039" stroke="#344564"/><circle cx="872" cy="195" r="3" fill="#a5acff"/><text x="894" y="200" fill="#d8e4f7" font-size="14">Developer interfaces</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="title description">
+  <title id="title">josongmin — Code intelligence. Explicit execution.</title>
+  <desc id="description">Rust systems and TypeScript/Python tooling across code intelligence, agent runtimes, and resource governance.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#0a1320"/><stop offset="1" stop-color="#10232d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.85" cy="0.1" r="0.8">
+      <stop stop-color="#368d83" stop-opacity="0.16"/><stop offset="1" stop-color="#368d83" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#c8e3e6" stroke-opacity="0.035"/>
+    </pattern>
+    <clipPath id="frame"><rect x="1" y="1" width="1278" height="398" rx="20"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="400" fill="url(#background)"/>
+    <rect width="1280" height="400" fill="url(#glow)"/>
+    <rect width="1280" height="400" fill="url(#grid)"/>
+    <path d="M770 -35L680 435M790 -35L700 435" fill="none" stroke="#88c9c2" stroke-opacity="0.06"/>
+  </g>
+  <rect x="1" y="1" width="1278" height="398" rx="20" fill="none" stroke="#29414b"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="56" y="43" width="5" height="14" rx="2" fill="#70e0c5"/>
+    <text x="76" y="55" font-size="12" letter-spacing="2.7" fill="#a9c3cc">JOSONGMIN / SYSTEMS ENGINEERING</text>
+    <text x="53" y="137" font-size="57" font-weight="700" letter-spacing="-2" fill="#f0f6f3">Code intelligence.</text>
+    <text x="53" y="204" font-size="57" font-weight="700" letter-spacing="-2" fill="#70e0c5">Explicit execution.</text>
+    <text x="56" y="246" font-size="18" fill="#adc2ca">Search, coding agents, and governed resources.</text>
+    <path d="M56 289H690" stroke="#2d444e"/>
+    <text x="56" y="324" font-size="12" letter-spacing="2.1" fill="#d7e6e6">RUST / TYPESCRIPT / PYTHON</text>
+    <text x="56" y="361" font-size="10" letter-spacing="2" fill="#819ca8">SOURCE · CONTRACTS · VERIFICATION</text>
+    <g>
+      <rect x="806" y="54" width="418" height="84" rx="12" fill="#101f2b" stroke="#304751"/>
+      <rect x="806" y="77" width="3" height="38" rx="1.5" fill="#70e0c5"/>
+      <text x="830" y="85" font-size="11" letter-spacing="1.5" fill="#70e0c5">01</text>
+      <text x="866" y="86" font-size="20" font-weight="600" fill="#e6efed">Code intelligence</text>
+      <text x="830" y="115" font-size="13" fill="#9db4bf">Typed ingestion · language frontends · retrieval</text>
+      <rect x="806" y="155" width="418" height="84" rx="12" fill="#101f2b" stroke="#304751"/>
+      <rect x="806" y="178" width="3" height="38" rx="1.5" fill="#a2adf7"/>
+      <text x="830" y="186" font-size="11" letter-spacing="1.5" fill="#a2adf7">02</text>
+      <text x="866" y="187" font-size="20" font-weight="600" fill="#e6efed">Agent runtimes</text>
+      <text x="830" y="216" font-size="13" fill="#9db4bf">Tools · sessions · explicit permissions</text>
+      <rect x="806" y="256" width="418" height="84" rx="12" fill="#101f2b" stroke="#304751"/>
+      <rect x="806" y="279" width="3" height="38" rx="1.5" fill="#e8bf7b"/>
+      <text x="830" y="287" font-size="11" letter-spacing="1.5" fill="#e8bf7b">03</text>
+      <text x="866" y="288" font-size="20" font-weight="600" fill="#e6efed">Resource governance</text>
+      <text x="830" y="317" font-size="13" fill="#9db4bf">Admission · memory · worker custody</text>
+      <text x="808" y="367" font-size="9" letter-spacing="1.4" fill="#819ca8">INDEPENDENT PROJECTS. EXPLICIT CONTRACTS.</text>
+    </g>
+  </g>
+</svg>
