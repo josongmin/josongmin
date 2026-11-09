@@ -2,9 +2,26 @@
 
 # Code intelligence and execution infrastructure
 
+<p align="center"><a href="#choose-a-project">Choose</a> · <a href="#engineering-priorities">Engineering</a> · <a href="#selected-systems">Reference</a></p>
+
 **Building systems for code intelligence, deterministic verification, and AI-native software engineering.**
 
 I work on Rust search, execution, and memory infrastructure, connected to TypeScript/Python agents and developer tools. The repositories pair implementation with architecture decisions, operating contracts, and verification procedures.
+
+## Choose a project
+
+| I need to… | Start with | Integration boundary |
+| :--- | :--- | :--- |
+| Run or embed a coding agent | [CodeAgent v3](https://github.com/josongmin/quanta-codeagent-v3) | Agent loop, tools, sessions, permissions, and SDK |
+| Publish and query code indexes | [Quanta Index](https://github.com/josongmin/quanta-index) | Typed producer SDK and an independently owned search plane |
+| Govern work and capacity | [Taskmesh](https://github.com/josongmin/quanta-taskmesh) | Admission and worker custody; caller completion and capacity release differ |
+| Account for retained memory | [Memory Platform](https://github.com/josongmin/quanta-memory-platform) | Budget and accounting authority, with host-owned integration |
+| Compile checked query source | [QGLang](https://github.com/josongmin/quanta-gqlang-v2) | Frontend compilation; runtime execution remains downstream |
+| Explore code and agent interfaces | [AI IDE v2](https://github.com/josongmin/quanta-ai-ide-v2) · [Quanta IDE](https://github.com/josongmin/quanta-ide) | Workbench/product surfaces; consult each adapter's live/demo scope |
+| Work with terminal execution | [Quanta Terminal](https://github.com/josongmin/quanta-terminal) | PTY/VT core, host protocol, and native prerequisites |
+| Build an account service | [P0 Platform](https://github.com/josongmin/p0-platform) | Identity, billing, entitlements, usage, and provider setup |
+| Explore retrieval and data pipelines | [Wine Search](https://github.com/josongmin/wine-search-engine) · [Recommendation ML](https://github.com/josongmin/recommandation-ml-w) | Catalog, model, feature, and service configuration |
+| Collect data or study crawler design | [Crawler workspace](https://github.com/josongmin/crawler-engine-web-w) · [Design contracts](https://github.com/josongmin/crawler-engine-w) | Runnable site adapters and specification-only work are separate repositories |
 
 ## Selected systems
 
@@ -16,7 +33,6 @@ I work on Rust search, execution, and memory infrastructure, connected to TypeSc
 | [Quanta CodeAgent v3](https://github.com/josongmin/quanta-codeagent-v3) | Tool execution, permissions, sessions, and context management | TypeScript · Bun |
 | [Quanta GQLang](https://github.com/josongmin/quanta-gqlang-v2) | Query-language syntax, types, semantics, and checked execution documents | Rust · Language frontend |
 | [Tantivy SSTable patch](https://github.com/josongmin/quanta-tantivy-sstable) | Admission before ordinal decoding and guard-carrying results | Rust · Storage integration |
-
 
 ## Engineering priorities
 
