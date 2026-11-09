@@ -18,4 +18,3 @@ Repository documentation distinguishes implementation, source-bound verification
 
 - [semantica-codegraph](https://github.com/josongmin/semantica-codegraph): Python code graph indexing and hybrid retrieval, with CLI, HTTP, and MCP interfaces.
 - [semantica-copilot](https://github.com/josongmin/semantica-copilot): LangGraph-based code understanding over the Codegraph HTTP API.
-- [light-data-serializer](https://github.com/josongmin/light-data-serializer): an archived Java binary serialization experiment.
