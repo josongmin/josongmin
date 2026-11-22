@@ -72,7 +72,17 @@ jobs:
                   page.setDefaultTimeout(16000);
                   const errors=[];page.on('pageerror',e=>errors.push(String(e)));
                   const pageInfo=await openGame(page,url+(lite?'?lite=1':''));
-                  assert(await page.locator('#modal [data-difficulty="normal"]').count()===1,'Difficulty mode selector missing');
+                  const bootDiagnostics=await page.evaluate(()=>({
+          title:document.title,htmlBytes:document.documentElement.outerHTML.length,
+          start:!!document.getElementById('start'),
+          normal:document.querySelectorAll('#modal [data-difficulty="normal"]').length,
+          debug:!!window.__battleDozerDebug,
+          art:!!window.BATTLE_DOZER_ART,
+          ready:document.readyState,
+          lastModal:document.querySelector('#modal')?.innerText?.slice(-190)
+        }));
+        console.log('BOOT_DIAGNOSTIC',JSON.stringify({engine,lite,bootDiagnostics,errors}));
+        assert(await page.locator('#modal [data-difficulty="normal"]').count()===1,'Difficulty mode selector missing',{bootDiagnostics,errors});
                   assert(await page.locator('#modal [data-difficulty="challenge"]').isDisabled(),'Challenge should be locked initially');
                   await page.locator('#start').click();
                   await page.waitForTimeout(1300);
