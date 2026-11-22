@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          url="https://raw.githack.com/josongmin/josongmin/main/games/battle-dozer/index.html"
+          url="https://raw.githack.com/josongmin/josongmin/${GITHUB_SHA}/games/battle-dozer/index.html"
           for i in {1..10}; do
             code=$(curl -L -sS -o /tmp/bd.html -w "%{http_code}" --max-time 20 "$url" || true)
             if [[ "$code" == "200" ]] && grep -q 'BATTLE DOZER' /tmp/bd.html; then break; fi
@@ -34,6 +34,7 @@ jobs:
           test -s /tmp/bd.html
           grep -q 'BATTLE DOZER' /tmp/bd.html
           grep -q '__battleDozerDebug' /tmp/bd.html
+          grep -q 'function laneOfX(x){return x>1.45?0:x<-1.45?2:1}' /tmp/bd.html
           curl -LsS -D /tmp/bd-headers.txt -o /tmp/bd.html "$url"
           grep -i -E 'HTTP/|content-type' /tmp/bd-headers.txt | tail -5
           grep -qi 'content-type: text/html' /tmp/bd-headers.txt
@@ -52,7 +53,7 @@ jobs:
             for(const [engine,launcher] of [['chromium',chromium],['webkit',webkit]]){
             const browser=await launcher.launch({headless:true});
             try{
-              const url='https://raw.githack.com/josongmin/josongmin/main/games/battle-dozer/index.html';
+              const url='https://raw.githack.com/josongmin/josongmin/'+process.env.GITHUB_SHA+'/games/battle-dozer/index.html';
               for(const lite of [false,true]){
                 const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
                 const errors=[];
