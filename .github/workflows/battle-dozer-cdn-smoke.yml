@@ -47,9 +47,10 @@ jobs:
         shell: bash
         run: |
           node <<'JS'
-          const {chromium}=require('playwright');
+          const {chromium,webkit}=require('playwright');
           (async()=>{
-            const browser=await chromium.launch({headless:true});
+            for(const [engine,launcher] of [['chromium',chromium],['webkit',webkit]]){
+            const browser=await launcher.launch({headless:true});
             try{
               const url='https://raw.githack.com/josongmin/josongmin/main/games/battle-dozer/index.html';
               for(const lite of [false,true]){
@@ -73,10 +74,11 @@ jobs:
                 await page.locator('#gl').tap({position:{x:180,y:440}});
                 await page.waitForTimeout(500);
                 const after=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
-                console.log('SMOKE',JSON.stringify({lite,before,after,errors}));
+                console.log('SMOKE',JSON.stringify({engine,lite,before,after,errors}));
                 if(after.mode!=='playing'||!after.coins||errors.length)throw new Error('Mobile game failed: '+JSON.stringify({lite,after,errors}));
                 await page.close();
               }
             }finally{await browser.close()}
+            }
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
