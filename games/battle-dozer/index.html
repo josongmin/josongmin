@@ -349,7 +349,7 @@ function drawFighter(t){
  const q=state||{},hit=q.attack||0,hurt=q.hurt||0;
  const px=3.20,pz=8.18,bob=Math.sin(t*2.25)*.032-hurt*.07;
  const fl=(shape,x,y,z,sx,sy,sz,color,metal=.5,glow=0,ry=0,rz=0,rx=0)=>dynamic(shape,[px+x,y+bob,z+pz,sx,sy,sz,ry,rz,rx],color,metal,glow);
- const wind=Math.sin(t*2.1)*.15;
+ const wind=Math.sin(t*2.1)*.15,wind2=Math.sin(t*1.7+.8)*.12;
  // Engraved miniature shrine. Solid, layered base and light stone underfoot.
  fl('cyl',0,-.44,0,1.24,.19,1.15,'#90643f',.87);
  fl('torus',0,-.34,0,1.05,.09,1.05,'#eac78b',.99);
@@ -399,20 +399,51 @@ function drawFighter(t){
  dynamic('cyl',[wristX+.43,wristY+.55,wristZ-.05,.26,.09,.26,0,0,.72],'#d9ae6a',.94);
  dynamic('blade',[wristX+.62+swing*.48,wristY+1.43,wristZ-.18,.37,1.85,.27,0,0,-.33-swing*.87],'#d8f4fc',.91,.15);
  dynamic('blade',[wristX+.59+swing*.48,wristY+1.43,wristZ-.191,.16,1.76,.13,0,0,-.33-swing*.87],'#fffdf6',.98,.07);
+ // Couture details: quilted sleeves, asymmetric leather guards, engraved belt and kimono ribbons.
+ for(const side of [-1,1]){
+  fl('torus',side*.68, .90,-.075,.15,.034,.15,'#c9a56a',.94);
+  fl('bevel',side*.29,-.10,-.01,.24,.32,.29,'#35455b',.56);
+  fl('torus',side*.29,-.30,-.04,.13,.032,.13,'#f2c989',.95);
+  fl('bevel',side*.28,-.46,-.16,.34,.16,.42,'#283342',.40);
+  fl('oct',side*.29,-.48,-.39,.09,.07,.06,'#e5c88d',.96);
+  fl('blade',side*.20,.51,.49,.07,.51,.07,'#f1ece2',.23,0,0,side*.20,side*.10+wind*.12);
+  fl('oct',side*.21,.30,.52,.10,.12,.09,'#cba66a',.93);
+ }
+ fl('torus',0,.98,-.48,.31,.045,.28,'#d3ac6b',.97,0,0,0,Math.PI/2);
+ fl('oct',0,1.02,-.57,.16,.22,.09,'#a3e6ec',.20,.45);
+ // Hair is made of separate swept locks, ponytail and a small gilded clasp.
+ for(const side of [-1,1]){
+  fl('blade',side*.31,2.38,-.16,.12,.34,.16,'#162538',.38,0,0,side*.26,side*.10);
+  fl('blade',side*.38,2.16,.20,.16,.39,.13,'#18283b',.34,0,0,side*.18,.20*side+wind2*.25);
+  fl('sphere',side*.14,2.15,-.450,.020,.014,.009,'#a4ecf3',.09,.16);
+  fl('blade',side*.30,1.93,-.25,.05,.15,.035,'#2d3d53',.28,0,0,side*.07);
+ }
+ fl('sphere',0,2.74,.26,.16,.27,.15,'#202f42',.40);
+ fl('torus',0,2.69,.29,.13,.036,.13,'#e5bd79',.99);
+ fl('oct',0,2.97,.23,.09,.12,.08,'#8de8f2',.19,.23);
+ fl('blade',-.07,2.43,-.36,.11,.22,.05,'#17283c',.3,0,0,-.31);
+ // Scabbard riding behind the shoulder and free-floating talisman.
+ fl('bevel',-.71,1.34,.43,.17,1.25,.18,'#3a3440',.67,0,0,-.16,.40);
+ fl('box',-.77,1.99,.49,.11,.27,.09,'#d4ac69',.97,0,0,-.16,.40);
+ fl('oct',-.70,.69,.39,.10,.12,.12,'#d1b279',.86,.04);
+ fl('blade',-.76,.31,.40,.08,.45,.07,'#c3d0d0',.23,0,0,-.20,-.16+wind2*.3);
+ // Rune blade: secondary edge groove and crossguard relief.
+ dynamic('blade',[wristX+.54+swing*.48,wristY+1.27,wristZ-.22,.09,.48,.07,0,0,-.33-swing*.87],'#a1eaff',.25,.35);
+ dynamic('sphere',[wristX+.45,wristY+.57,wristZ-.04,.12,.12,.12],'#f2d99e',.98,.06);
  // Signature blossom crest.
  fl('oct',-.49,1.18,-.42,.19,.18,.12,'#eab1c4',.35,.10);
 }
 
 function drawEnemy(t){
- const w=state?.wave||0,scale=w===2?1.18:w===1?.97:.82;
+ const w=state?.wave||0,scale=[.67,.80,.73,1.05,1.15,1.22][w]||1;
  const cx=-2.75,cz=8.83,hit=state?.hit||0,warn=state?.warning||0;
  const bob=Math.sin(t*1.47)*.062;
  const stagger=hit?Math.sin(t*76)*hit*.14:0;
- const attack=warn>0?Math.sin((1-warn/1.8)*Math.PI)*.42:0;
- const col=w===2?'#515f73':w===1?'#414358':'#617078';
- const armor=w===2?'#a48a71':w===1?'#85759b':'#99a39d';
- const gold=w===2?'#e4b47c':w===1?'#c4a1df':'#c0dbd5';
- const core=w===2?'#ffad65':w===1?'#b797ff':'#80ddf6';
+ const attack=warn>0?Math.sin((1-warn/(waveData[w].boss?6.2:6.0))*Math.PI)*.42:0;
+ const col=['#403745','#384b57','#3b3557','#515f73','#302e51','#555263'][w];
+ const armor=['#b76c60','#7eacb7','#8a75ba','#a48a71','#665c9c','#d8b482'][w];
+ const gold=['#e6a58a','#c4e6e9','#d2b7fc','#e4b47c','#c4a1df','#ffe1a2'][w];
+ const core=['#ff9d7d','#80d6f0','#a9a2ff','#ffad65','#bc94ff','#ffe095'][w];
  const f=(shape,x,y,z,sx,sy,sz,color,metal=.58,glow=0,ry=0,rz=0,rx=0)=>dynamic(shape,[cx+x*scale+stagger,y*scale+bob,cz+z*scale,sx*scale,sy*scale,sz*scale,ry,rz,rx],color,metal,glow);
  f('cyl',0,-.30,0,1.49,.26,1.25,'#a88b62',.89);
  f('torus',0,-.16,0,1.35,.08,1.24,'#d2ad70',.98);
@@ -453,6 +484,61 @@ function drawEnemy(t){
  }
  f('bevel',0,3.17,-.70,.64,.24,.25,'#15202b',.4);
  f('oct',0,4.43,-.32,.22,.32,.22,gold,.87);
+ // Six distinct enemy silhouettes: raider, shield infantry, sorcerer, and three boss families.
+ if(w===0){
+   // Dusk Raider: crossed daggers, hood, red ribbon and light segmented cuirass.
+   f('blade',-1.92,1.27,-1.32,.20,1.16,.17,'#e9eff2',.90,.02,0,0,-.45);
+   f('blade',1.92,1.27,-1.32,.20,1.16,.17,'#e9eff2',.90,.02,0,0,.45);
+   f('bevel',0,1.07,-1.00,1.21,.27,.20,'#c24b4b',.21);
+   f('blade',-.24,1.16,-.94,.18,.92,.14,'#dc7b67',.25,0,0,0,.40);
+   f('oct',0,4.30,-.52,.67,.46,.45,'#342935',.40);
+   f('blade',0,4.53,-.15,.52,.36,.31,'#9b464e',.29);
+ }else if(w===1){
+   // Aegis Guard: iconic broad blue shield and a luminous hammer.
+   f('bevel',-2.25,1.46,-1.40,1.50,2.12,.27,'#9ac9cf',.77);
+   f('bevel',-2.25,1.50,-1.63,1.05,1.68,.12,'#2c4858',.74);
+   f('oct',-2.25,1.54,-1.78,.54,.68,.13,'#b9f2f1',.25,.30);
+   f('cyl',2.16,1.87,-.91,.16,1.62,.16,'#d4bd9b',.80,0,0,0,Math.PI/2);
+   f('bevel',2.18,2.72,-.95,.95,.53,.67,'#bdcfd6',.87);
+   f('torus',0,4.08,-.70,.54,.06,.44,'#b6f1f3',.35,.26,0,0,Math.PI/2);
+ }else if(w===2){
+   // Rune Caster: hovering orbitals and a pointed hooded mantle.
+   f('blade',0,4.95,-.14,.72,1.08,.60,'#53416d',.49);
+   f('bevel',0,.74,.31,2.04,1.65,.54,'#43335e',.31);
+   f('torus',0,4.16,-.24,1.09,.12,1.09,'#ad99ff',.18,.32,0,0,.24);
+   for(const side of [-1,1]){
+      f('oct',side*2.52,2.84+Math.sin(t*2+side)*.12,-.89,.31,.47,.29,'#b4b5ff',.15,.55);
+      f('blade',side*1.42,1.32,.27,.34,1.73,.25,'#806ac5',.28,0,0,side*.24);
+   }
+ }else if(w===3){
+   // Iron Golem: furnace piston shoulders, hammered bronze plates and crown horns.
+   for(const side of [-1,1]){
+      f('blade',side*.92,4.89,.11,.25,.96,.23,'#ddb777',.82,0,0,side*.35);
+      f('cyl',side*1.45,2.78,.62,.26,1.04,.26,'#a17e58',.75,0,0,.5);
+   }
+   f('torus',0,2.14,-1.03,.89,.08,.89,'#ffd39c',.68,.27,0,0,Math.PI/2);
+ }else if(w===4){
+   // Abyss Colossus: jagged obsidian wings and four amethyst spines.
+   for(const side of [-1,1]){
+      f('blade',side*1.40,3.19,.62,.54,1.58,.36,'#3e315f',.62,0,0,side*.38,-.16);
+      f('blade',side*2.15,3.72,.43,.27,1.27,.24,'#8b6fca',.49,.07,0,0,side*.54);
+      f('blade',side*.90,4.88,-.12,.21,1.06,.28,'#9b85d7',.42,.16,0,0,side*.29);
+   }
+   f('torus',0,2.15,-1.02,.82,.10,.82,'#c5a0ff',.22,.43,0,0,Math.PI/2);
+ }else if(w===5){
+   // Eclipse Titan: imperial golden crown, floating solar halo and temple blades.
+   for(const side of [-1,1]){
+      f('blade',side*.85,5.11,.14,.34,1.27,.27,'#ffe0a1',.97,.14,0,0,side*.34);
+      f('blade',side*1.47,4.77,.40,.26,1.09,.22,'#edc783',.94,.07,0,0,side*.48);
+      f('blade',side*2.47,2.37,.45,.28,1.15,.26,'#e6ba79',.86,.04,0,0,side*.39);
+   }
+   f('torus',0,4.85,.28,1.27,.09,1.27,'#ffe29c',.93,.40,0,0,.19);
+   f('torus',0,2.14,-1.12,1.00,.12,1.00,'#ffe9b0',.96,.44,0,0,Math.PI/2);
+ }
+ if((state?.bossStun||0)>0){
+  const r=Math.sin(t*24)*.09;
+  f('oct',0,2.10,-1.45,.52+r,.63+r,.27,'#acf4fa',.20,.72);
+ }
  if(warn>0){
   f('oct',0,2.15,-1.55,.47,.64,.30,'#f46b54',.2,.75);
   f('torus',0,2.12,-1.54,.84,.11,.84,'#e66e55',.35,.60,0,0,Math.PI/2);
