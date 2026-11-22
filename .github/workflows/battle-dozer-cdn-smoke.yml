@@ -82,7 +82,7 @@ jobs:
                   d.step(.05);
                   const began=s.warning>0&&s.threatLane>=0;
                   const lane=s.threatLane,need=s.threatNeed;
-                  s.aimX=[-3,0,3][lane];s.ammo=Math.max(15,s.ammo);
+                  s.aimX=[3,0,-3][lane];s.ammo=Math.max(15,s.ammo);
                   for(let i=0;i<need;i++)d.drop();
                   const parried=s.parries>=1&&s.bossStun>0&&s.warning===0;
                   s.combo=s.feverThreshold-1;s.comboT=s.time;s.fever=0;s.feverCooldown=0;
@@ -101,6 +101,17 @@ jobs:
                 console.log('GAMEPLAY',JSON.stringify({engine,lite,gameplay}));
                 if(!gameplay.began||!gameplay.parried||!gameplay.fever||!gameplay.shieldBlocked||!gameplay.upgrade||!gameplay.nextWave)
                   throw new Error('Gameplay test failed: '+JSON.stringify({engine,lite,gameplay}));
+                if(!lite)await page.locator('#view').click();
+                await page.waitForTimeout(lite?100:1100);
+                await page.locator('#gl').tap({position:{x:240,y:400}});
+                const aiming=await page.evaluate(()=>{
+                  const d=window.__battleDozerDebug,s=d.state;
+                  const zz=d.worldZ(Math.max(3.95,s.pusher+1.2));
+                  const projected=d.projectPoint(s.aimX,.18,zz);
+                  return {x:s.aimX,screenX:projected.x,expectX:240,error:Math.abs(projected.x-240)};
+                });
+                console.log('AIM',JSON.stringify({engine,lite,aiming}));
+                if(aiming.error>9)throw new Error('Camera-aware aiming failed: '+JSON.stringify({engine,lite,aiming}));
                 await page.close();
               }
             }finally{await browser.close()}
