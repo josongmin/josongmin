@@ -50,122 +50,154 @@ jobs:
           node <<'JS'
           const {chromium,webkit}=require('playwright');
           const fs=require('fs');fs.mkdirSync('artifacts',{recursive:true});
-          (async()=>{
-            for(const [engine,launcher] of [['chromium',chromium],['webkit',webkit]]){
-            const browser=await launcher.launch({headless:true});
-            try{
-              const url='https://raw.githack.com/josongmin/josongmin/'+process.env.GITHUB_SHA+'/games/battle-dozer/index.html';
-              for(const lite of [false,true]){
-                const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
-                const errors=[];
-                page.on('pageerror',e=>errors.push(String(e)));
-                const response=await page.goto(url+(lite?'?lite=1':''),{waitUntil:'domcontentloaded',timeout:60000});
-                const locator=page.locator('#start');
-                console.log('NAV_DIAGNOSTIC',JSON.stringify({lite,status:response?.status(),url:page.url(),title:await page.title(),startCount:await locator.count(),bodyStart:(await page.locator('body').innerText().catch(e=>'BODY_ERROR:'+e)).slice(0,250)}));
-                if(await locator.count()===0){
-                  const open=page.getByText('Open the page',{exact:true}).first();
-                  console.log('CONSENT',JSON.stringify({lite,openCount:await open.count()}));
-                  if(await open.count())await open.click({timeout:15000});
-                  await page.waitForTimeout(900);
-                }
-                console.log('POST_CONSENT',JSON.stringify({lite,url:page.url(),startCount:await locator.count(),title:await page.title()}));
-                if(await locator.count()===0)throw new Error('Missing Start button after content notice');
-                await locator.click({timeout:15000});
-                await page.waitForTimeout(1800);
-                const before=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
-                await page.locator('#gl').tap({position:{x:180,y:440}});
-                await page.waitForTimeout(500);
-                const after=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
-                console.log('SMOKE',JSON.stringify({engine,lite,before,after,errors}));
-                if(after.mode!=='playing'||!after.coins||errors.length)throw new Error('Mobile game failed: '+JSON.stringify({lite,after,errors}));
-                await page.locator('#codex').click({timeout:12000});
-                const gallery=await page.evaluate(()=>({
-                  visible:!document.querySelector('#armory').hidden,
-                  coins:document.querySelectorAll('#coinGallery .mintCard img').length,
-                  enemies:document.querySelectorAll('#foeGallery .foeItem').length,
-                  allLoaded:[...document.querySelectorAll('#coinGallery img')].every(img=>img.complete&&img.naturalWidth>0),
-                  inCodex:window.__battleDozerDebug?.state?.mode==='codex'
-                }));
-                console.log('GALLERY',JSON.stringify({engine,lite,gallery}));
-                if(!gallery.visible||gallery.coins!==4||gallery.enemies!==6||!gallery.allLoaded||!gallery.inCodex)
-                  throw new Error('Coin/character gallery broken '+JSON.stringify(gallery));
-                if(engine==='chromium'&&!lite)await page.screenshot({path:'artifacts/artisan-collection.png'});
-                await page.locator('#codexClose').click();
-                if(await page.evaluate(()=>window.__battleDozerDebug?.state?.mode)!=='playing')throw new Error('Gallery did not resume gameplay');
-                if(engine==='webkit'&&lite)await page.screenshot({path:'artifacts/artisan-phone-lite.png'});
-                if(engine==='chromium'&&!lite){
-                  await page.screenshot({path:'artifacts/artisan-phone-3d.png'});
-                  for(const [wave,hp] of [[0,580],[2,1120],[3,1960],[5,3800]]){
-                    await page.evaluate(([wave,hp])=>{
-                       const s=window.__battleDozerDebug.state;
-                       s.wave=wave;s.enemy=hp;s.maxEnemy=hp;
-                    },[wave,hp]);
-                    await page.waitForTimeout(380);
-                    await page.screenshot({path:'artifacts/encounter-'+wave+'.png'});
-                  }
-                  await page.evaluate(()=>{
-                    const s=window.__battleDozerDebug.state;
-                    s.wave=0;s.enemy=580;s.maxEnemy=580;
-                  });
-                }
-                const gameplay=await page.evaluate(()=>{
-                  const d=window.__battleDozerDebug,s=d.state;
-                  s.warning=0;s.bossStun=0;s.enemyTimer=.01;
-                  d.step(.05);
-                  const began=s.warning>0&&s.threatLane>=0;
-                  const lane=s.threatLane,need=s.threatNeed;
-                  s.aimX=[3,0,-3][lane];s.ammo=Math.max(15,s.ammo);
-                  for(let i=0;i<need;i++)d.drop();
-                  const parried=s.parries>=1&&s.bossStun>0&&s.warning===0;
-                  s.combo=s.feverThreshold-1;s.comboT=s.time;s.fever=0;s.feverCooldown=0;
-                  d.collect({kind:'normal',x:0,releaseHeight:.20});
-                  const fever=s.fever>0&&s.feverTimes>0;
-                  s.bossStun=0;s.enemyTimer=.01;d.step(.05);
-                  s.wall=6;s.warning=.015;
-                  const priorHp=s.hp;d.step(.03);
-                  const shieldBlocked=s.hp===priorHp;
-                  s.enemy=5;d.deal(10);
-                  const upgrade=s.mode==='upgrade';
-                  if(upgrade)document.querySelector('[data-choose]').click();
-                  const nextWave=s.wave===1&&s.mode==='playing';
-                  return {began,lane,need,parried,parries:s.parries,fever,feverTimes:s.feverTimes,shieldBlocked,upgrade,nextWave,render:d.metrics().world3d};
-                });
-                console.log('GAMEPLAY',JSON.stringify({engine,lite,gameplay}));
-                if(!gameplay.began||!gameplay.parried||!gameplay.fever||!gameplay.shieldBlocked||!gameplay.upgrade||!gameplay.nextWave)
-                  throw new Error('Gameplay test failed: '+JSON.stringify({engine,lite,gameplay}));
-                if(!lite)await page.locator('#view').click();
-                await page.waitForTimeout(lite?100:1100);
-                await page.locator('#gl').tap({position:{x:240,y:400}});
-                const aiming=await page.evaluate(()=>{
-                  const d=window.__battleDozerDebug,s=d.state;
-                  const zz=d.worldZ(Math.max(3.95,s.pusher+1.2));
-                  const projected=d.projectPoint(s.aimX,.18,zz);
-                  return {x:s.aimX,screenX:projected.x,atInput:s.lastAimDisplayX,expectX:240,error:Math.abs(s.lastAimDisplayX-240)};
-                });
-                console.log('AIM',JSON.stringify({engine,lite,aiming}));
-                if(aiming.error>9)throw new Error('Camera-aware aiming failed: '+JSON.stringify({engine,lite,aiming}));
-                const fullRun=await page.evaluate(()=>{
-                  const d=window.__battleDozerDebug,s=d.state,visited=[s.wave];
-                  let bossWaves=0,guard=0;
-                  while(s.mode==='playing'&&guard++<7){
-                    if(s.wave>=3)bossWaves++;
-                    s.enemy=2;d.deal(20);
-                    if(s.mode==='upgrade'){
-                      const c=document.querySelector('[data-choose]');
-                      if(!c)break;
-                      c.click();visited.push(s.wave);
-                    }
-                  }
-                  return {visited,bossWaves,victory:s.mode==='victory',wave:s.wave,mode:s.mode};
-                });
-                console.log('FULL_RUN',JSON.stringify({engine,lite,fullRun}));
-                if(fullRun.visited.join(',')!=='1,2,3,4,5'||fullRun.bossWaves!==3||!fullRun.victory)
-                  throw new Error('6-wave campaign failed: '+JSON.stringify({engine,lite,fullRun}));
-                await page.close();
-              }
-            }finally{await browser.close()}
+          const assert=(condition,message,data={})=>{if(!condition)throw Error(message+' '+JSON.stringify(data))};
+          async function openGame(page,url){
+            let response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+            if(await page.locator('#start').count()===0){
+              const consent=page.getByText('Open the page',{exact:true}).first();
+              assert(await consent.count()>0,'Missing game or third-party consent screen',{status:response?.status(),title:await page.title()});
+              await consent.click({timeout:15000});
             }
-          })().catch(e=>{console.error(e);process.exit(1)});
+            await page.locator('#start').waitFor({timeout:18000});
+            return {url:page.url(),title:await page.title()};
+          }
+          async function main(){
+            const url='https://raw.githack.com/josongmin/josongmin/'+process.env.GITHUB_SHA+'/games/battle-dozer/index.html';
+            for(const [engine,launcher] of [['chromium',chromium],['webkit',webkit]]){
+              const browser=await launcher.launch({headless:true});
+              try{
+                for(const lite of [false,true]){
+                  const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+                  page.setDefaultTimeout(16000);
+                  const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+                  const pageInfo=await openGame(page,url+(lite?'?lite=1':''));
+                  assert(await page.locator('#modal [data-difficulty="normal"]').count()===1,'Difficulty mode selector missing');
+                  assert(await page.locator('#modal [data-difficulty="challenge"]').isDisabled(),'Challenge should be locked initially');
+                  await page.locator('#start').click();
+                  await page.waitForTimeout(1300);
+                  const d0=await page.evaluate(()=>window.__battleDozerDebug?.metrics());
+                  assert(d0&&d0.stage===0&&d0.difficulty==='normal'&&d0.count>70,'Game did not boot',d0);
+                  assert(lite?!d0.world3d:d0.world3d,'WebGL/fallback mismatch',d0);
+                  await page.locator('#gl').tap({position:{x:181,y:412}});
+                  await page.waitForTimeout(400);
+                  assert(errors.length===0,'JS errors after touch',{errors});
+                  await page.locator('#codex').click();
+                  const gallery=await page.evaluate(()=>({
+                    shown:!document.querySelector('#armory').hidden,
+                    coins:document.querySelectorAll('#coinGallery .mintCard img').length,
+                    enemies:document.querySelectorAll('#foeGallery .foeItem').length,
+                    loaded:[...document.querySelectorAll('#coinGallery img')].every(img=>img.complete&&img.naturalWidth>0)
+                  }));
+                  assert(gallery.shown&&gallery.coins===5&&gallery.enemies===6&&gallery.loaded,'Gallery not loaded',gallery);
+                  if(engine==='chromium'&&!lite)await page.screenshot({path:'artifacts/balance-v2-gallery.png'});
+                  await page.locator('#codexClose').click();
+                  if(engine==='chromium'&&!lite){
+                    await page.screenshot({path:'artifacts/balance-v2-mobile-3d.png'});
+                    for(const stage of [0,1,2,3,4,5]){
+                      await page.evaluate(n=>{
+                        const d=window.__battleDozerDebug,s=d.state;
+                        s.wave=n;s.enemy=s.maxEnemy=d.stages[n].hp;
+                      },stage);
+                      await page.waitForTimeout(150);
+                      await page.screenshot({path:'artifacts/balance-v2-stage-'+stage+'.png'});
+                    }
+                    await page.evaluate(()=>{const d=window.__battleDozerDebug,s=d.state;s.wave=0;s.enemy=s.maxEnemy=d.stages[0].hp;});
+                  }
+                  if(engine==='webkit'&&lite)await page.screenshot({path:'artifacts/balance-v2-mobile-2d.png'});
+                  const mechanics=await page.evaluate(()=>{
+                    const d=window.__battleDozerDebug,s=d.state;
+                    const ev=(kind)=>d.events.some(x=>x.type===kind);
+                    s.mode='playing';s.wave=0;s.enemy=s.maxEnemy=500;s.warning=0;s.bossStun=0;s.enemyTimer=.01;
+                    d.step(.05);
+                    const began=s.warning>0&&s.threatLane>=0;
+                    const lane=s.threatLane,oldParries=s.parries;
+                    s.aimX=[3,0,-3][lane];s.ammo=40;
+                    d.drop();d.drop();
+                    const primed=s.threatPrimed&&s.threatCount===1&&s.parries===oldParries;
+                    let coin=d.coins.find(x=>!x.falling&&x.kind==='normal');
+                    coin.x=s.aimX;coin.z=12.3;coin.y=-1.24;coin.vy=-6;coin.falling='front';coin.releaseHeight=.23;
+                    d.physics(1/60);
+                    const physicalParry=s.parries>oldParries&&s.warning===0&&ev('counter_fall');
+                    s.combo=s.feverThreshold-1;s.comboT=s.time;s.fever=0;s.feverCooldown=0;
+                    d.collect({kind:'normal',x:0,releaseHeight:.21});
+                    const fever=s.fever>0&&s.feverTimes>0;
+                    s.bossStun=0;s.warning=.01;s.wall=6;
+                    const prevHp=s.hp;d.step(.04);
+                    const wallProtected=s.hp===prevHp&&ev('perfect_wall');
+                    s.time+=11.5;s.lastCollectTime=s.time-11;s.lastBoost=s.time-11;s.waveStart=0;
+                    s.overdriveReady=false;d.step(.05);
+                    const ready=s.overdriveReady;
+                    const boosted=d.boost()&&s.pushBurst>0&&!s.overdriveReady;
+                    s.wave=2;s.enemy=s.maxEnemy=1300;s.combo=0;s.comboT=-999;s.fever=0;s.cost=999;s.mana=0;
+                    s.shieldLane=1;s.shieldTimer=0;s.warning=0;s.enemyTimer=999;
+                    const beforeShield=s.enemy;d.collect({kind:'normal',x:0,releaseHeight:.16});
+                    const guardedDamage=beforeShield-s.enemy;
+                    d.collect({kind:'bomb',x:0,releaseHeight:.16});
+                    const guardBroken=s.shieldTimer>0&&ev('shield_break');
+                    s.wave=3;s.tiltTimer=3;s.tiltSign=1;d.step(.03);
+                    const tilted=s.boardTilt>.1;
+                    s.wave=4;s.curseTimer=.01;s.tiltTimer=0;d.step(.05);
+                    const spawned=d.coins.some(x=>x.kind==='curse');
+                    const curse=d.coins.find(x=>x.kind==='curse');
+                    const cleansed=curse?d.cleanCurses(curse.x,curse.z,1.3)>0:false;
+                    s.wave=1;s.enemy=s.maxEnemy=1600;s.golemCleared=0;
+                    d.collect({kind:'rock',x:0,releaseHeight:.2});
+                    d.collect({kind:'rock',x:0,releaseHeight:.2});
+                    const golemStunned=s.bossStun>0&&ev('rock_cleared');
+                    s.wave=5;s.enemy=720;s.maxEnemy=2900;s.weakLane=-1;s.mode='playing';
+                    d.deal(60);
+                    const titanWeak=s.weakLane>=0&&ev('weakpoint');
+                    const observedEvents=d.events.length;
+                    return {began,primed,physicalParry,fever,wallProtected,ready,boosted,guardedDamage,guardBroken,
+                      tilted,spawned,cleansed,golemStunned,titanWeak,observedEvents};
+                  });
+                  console.log('MECHANICS',JSON.stringify({engine,lite,mechanics}));
+                  for(const key of ['began','primed','physicalParry','fever','wallProtected','ready','boosted','guardBroken','tilted','spawned','cleansed','golemStunned','titanWeak'])
+                    assert(mechanics[key],key+' failed',{engine,lite,mechanics});
+                  assert(mechanics.guardedDamage>0&&mechanics.guardedDamage<7,'Shield was ineffective',{engine,lite,mechanics});
+                  if(!lite)await page.locator('#view').click();
+                  await page.waitForTimeout(lite?70:800);
+                  await page.locator('#gl').tap({position:{x:238,y:414}});
+                  const aiming=await page.evaluate(()=>{
+                    const s=window.__battleDozerDebug.state;
+                    return {error:Math.abs((s.lastAimDisplayX||0)-238),x:s.aimX};
+                  });
+                  assert(aiming.error<10,'Touch/camera aim inaccurate',aiming);
+                  const campaign=await page.evaluate(()=>{
+                    const d=window.__battleDozerDebug,s=d.state,stages=d.stages.map(x=>x.name),visited=[];
+                    s.mode='playing';s.wave=0;s.enemy=s.maxEnemy=20;s.fever=0;s.bossStun=0;
+                    for(let i=0;i<6;i++){
+                      visited.push(s.wave);
+                      s.enemy=3;d.deal(5);
+                      if(i<5){
+                        if(s.mode!=='upgrade')break;
+                        document.querySelector('[data-choose]').click();
+                      }
+                    }
+                    return {stages,visited,mode:s.mode,wave:s.wave,unlock:d.unlockLevel,
+                      runs:JSON.parse(localStorage.getItem('bd_run_history')||'[]').length,
+                      counters:d.events.filter(e=>e.type==='counter').length};
+                  });
+                  console.log('CAMPAIGN',JSON.stringify({engine,lite,campaign}));
+                  assert(campaign.visited.join(',')==='0,1,2,3,4,5'&&campaign.mode==='victory'&&campaign.unlock>=1,'6-stage run or difficulty unlock broken',campaign);
+                  assert(campaign.stages.join('|')==='DUSK RAIDER|IRON GOLEM|AEGIS GUARD|ABYSS COLOSSUS|RUNE CASTER|ECLIPSE TITAN','Encounter order wrong',campaign);
+                  await page.locator('[data-difficulty="challenge"]').last().click();
+                  await page.locator('#restart').click();
+                  const challenge=await page.evaluate(()=>({
+                    difficulty:window.__battleDozerDebug.state.difficulty,
+                    hp:window.__battleDozerDebug.state.maxEnemy,
+                    telemetry:window.__battleDozerDebug.events.length
+                  }));
+                  assert(challenge.difficulty==='challenge'&&challenge.hp===500&&challenge.telemetry>0,'Challenge mode cannot be selected',challenge);
+                  console.log('PASS',JSON.stringify({engine,lite,game:pageInfo.title,renderer:d0.world3d?'3D':'2D',
+                    coins:gallery.coins,enemies:gallery.enemies,mechanics,aiming,campaign,challenge,errors}));
+                  assert(errors.length===0,'Browser JS errors',{engine,lite,errors});
+                  await page.close();
+                }
+              }finally{await browser.close()}
+            }
+          }
+          main().catch(e=>{console.error(e);process.exit(1)});
           JS
       - name: Upload verified game HTML
         if: success()
