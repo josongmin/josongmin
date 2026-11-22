@@ -224,10 +224,10 @@ void main(){
    float r=length(vLocal.xz),ang=atan(vLocal.z,vLocal.x);
    float face=step(.45,abs(N.y)), side=1.-face;
    float back=step(N.y,-.45);
-   float tile=min(3.,floor(vTint.a+.5));
+   float tile=min(4.,floor(vTint.a+.5));
    vec2 uv=clamp(.5+vLocal.xz/(.369*2.),.007,.993);
    uv.x=mix(uv.x,1.-uv.x,back);
-   vec2 atlasUV=(uv+vec2(mod(tile,2.),floor(tile*.5)))*.5;
+   vec2 atlasUV=(uv+vec2(mod(tile,3.),floor(tile/3.)))*vec2(1./3.,.5);
    vec3 ink=texture(uCoinAtlas,atlasUV).rgb;
    float engrave=.5+.5*cos(r*92.);
    float radial=pow(abs(cos(ang*26.)),52.);
@@ -250,7 +250,7 @@ void main(){
    outC=mix(edgeGold,minted,face);
    if(tile>.5&&tile<1.5)outC*=vec3(1.15,.74,.67);
    if(tile>1.5&&tile<2.5)outC*=vec3(.63,1.10,1.44);
-   if(tile>2.5)outC*=vec3(.67,.78,.83);
+   if(tile>2.5&&tile<3.5)outC*=vec3(.67,.78,.83);if(tile>3.5)outC*=vec3(.92,.64,1.15);
    // Filmic curve keeps deep grooves while preserving gold glints.
    outC=(outC*(2.25*outC+.035))/(outC*(2.12*outC+.54)+.19);
  }else{
@@ -743,7 +743,7 @@ for(let i=0;i<coins.length;i++){
 const c=coins[i],p=i*3,k=i*4;
 poses[p]=c.x;poses[p+1]=c.y;poses[p+2]=worldZ(c.z);
 angles[p]=c.rx||0;angles[p+1]=c.ry||0;angles[p+2]=c.rz||0;
-const tint=c.kind==='bomb'?[1,.35,.21,1]:c.kind==='storm'?[.38,.92,1.0,2]:c.kind==='rock'?[.59,.68,.73,3]:[1,.83,.48,0];
+const tint=c.kind==='bomb'?[1,.35,.21,1]:c.kind==='storm'?[.38,.92,1.0,2]:c.kind==='rock'?[.59,.68,.73,3]:c.kind==='curse'?[.86,.51,1,4]:[1,.83,.48,0];
 meta.set(tint,k);
 }
 gl.bindBuffer(gl.ARRAY_BUFFER,m.instanceBuffer);gl.bufferData(gl.ARRAY_BUFFER,poses,gl.DYNAMIC_DRAW);
@@ -1518,7 +1518,7 @@ for(let i=rings.length-1;i>=0;i--){rings[i].age+=dt;if(rings[i].age>rings[i].lif
 function makeMintedSprite(kind){
 const side=256,off=document.createElement('canvas');off.width=side;off.height=side;
 const c=off.getContext('2d'),R=128;
-const pal=kind==='bomb'?['#ffe1a3','#de7c48','#923a31','#491d20']:kind==='storm'?['#e7fbff','#7dcbe4','#2b759c','#17364d']:kind==='rock'?['#bec7d0','#8696a0','#57606e','#313b47']:['#ffe7a2','#bc7b2f','#714318','#2c1d18'];
+const pal=kind==='bomb'?['#ffe1a3','#de7c48','#923a31','#491d20']:kind==='storm'?['#e7fbff','#7dcbe4','#2b759c','#17364d']:kind==='rock'?['#bec7d0','#8696a0','#57606e','#313b47']:kind==='curse'?['#f3d9ff','#bc85ed','#6949a8','#241b46']:['#ffe7a2','#bc7b2f','#714318','#2c1d18'];
 c.save();c.translate(R,R);
 // coin extrusion visible as bevel and a precise jeweller's rim
 let shadow=c.createRadialGradient(-30,-38,3,0,0,124);shadow.addColorStop(0,pal[0]);shadow.addColorStop(.5,pal[1]);shadow.addColorStop(.84,pal[2]);shadow.addColorStop(1,pal[3]);
@@ -1577,6 +1577,11 @@ function emblem(dx,dy,fill,stroke){
  }else if(kind==='storm'){
   c.moveTo(12,-52);c.lineTo(-31,-5);c.lineTo(-5,-5);c.lineTo(-25,47);
   c.lineTo(39,-18);c.lineTo(5,-18);c.lineTo(12,-52);c.closePath();
+ }else if(kind==='curse'){
+  // Broken purple lunar seal with an eye-shaped negative centre.
+  c.moveTo(0,-53);c.bezierCurveTo(-55,-44,-62,17,-24,39);
+  c.bezierCurveTo(-32,-7,12,-33,36,-20);
+  c.bezierCurveTo(48,3,21,38,-6,50);c.bezierCurveTo(55,29,60,-35,0,-53);c.closePath();
  }else{
   // Faceted obsidian shield.
   c.moveTo(0,-50);c.lineTo(38,-9);c.lineTo(28,28);c.lineTo(0,51);
@@ -1605,12 +1610,13 @@ c.lineWidth=5;c.strokeStyle='#ffffff72';c.beginPath();c.arc(-8,-8,92,Math.PI*1.1
 c.lineWidth=3;c.strokeStyle='#fff4ba88';c.beginPath();c.arc(4,4,96,0.16,.42*T);c.stroke();
 c.restore();return off;
 }
-const minted={normal:makeMintedSprite('normal'),bomb:makeMintedSprite('bomb'),storm:makeMintedSprite('storm'),rock:makeMintedSprite('rock')};
+const minted={normal:makeMintedSprite('normal'),bomb:makeMintedSprite('bomb'),storm:makeMintedSprite('storm'),rock:makeMintedSprite('rock'),curse:makeMintedSprite('curse')};
 const coinSpec=[
  ['normal','AUREUS · STRIKE','24K battle gold · sunburst seal','주화 회수 시 기본 공격과 마나 생성'],
  ['bomb','CINDER · DETONATOR','Blackened copper · ignition rune','투입 시 충격파 · 회수 시 광역 폭발'],
  ['storm','TEMPEST · ARC','Palladium & azure enamel','청뢰 문양 · 회수 시 번개 연쇄'],
- ['rock','OBSIDIAN · OBSTACLE','Forged onyx · fractured crystal','적 공격 시 보드에 생기는 장애물']
+ ['rock','OBSIDIAN · OBSTACLE','Forged onyx · fractured crystal','아이언 골렘 낙석 · 회수하면 그로기'],
+ ['curse','LUNAR HEX · CURSE','Violet silver · broken moon seal','마법사가 소환 · 특수 코인으로 정화']
 ];
 function openCodex(){
  if(!state||state.mode==='codex')return;
@@ -1633,12 +1639,12 @@ $('armory').addEventListener('pointerdown',e=>{if(e.target.id==='armory')closeCo
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('armory').hidden)closeCodex();});
 
 if(gl){
-const atlas=document.createElement('canvas');atlas.width=512;atlas.height=512;
+const atlas=document.createElement('canvas');atlas.width=768;atlas.height=512;
 const a=atlas.getContext('2d');
-a.drawImage(minted.normal,0,0);a.drawImage(minted.bomb,256,0);
-a.drawImage(minted.storm,0,256);a.drawImage(minted.rock,256,256);
+a.drawImage(minted.normal,0,0);a.drawImage(minted.bomb,256,0);a.drawImage(minted.storm,512,0);
+a.drawImage(minted.rock,0,256);a.drawImage(minted.curse,256,256);
 coinAtlas=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,coinAtlas);
-gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
 gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
