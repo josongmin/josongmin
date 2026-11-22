@@ -126,20 +126,23 @@ void main(){
  outC+=rim*.13*vec3(.32,.62,1.0)+fres*.13*base;
  if(uCoin>.5){
    float r=length(vLocal.xz),ang=atan(vLocal.z,vLocal.x);
-   float face=step(.45,N.y), side=1.-face;
+   float face=step(.45,abs(N.y)), side=1.-face;
+   float back=step(N.y,-.45);
    float tile=min(3.,floor(vTint.a+.5));
    vec2 uv=clamp(.5+vLocal.xz/(.369*2.),.007,.993);
+   uv.x=mix(uv.x,1.-uv.x,back);
    vec2 atlasUV=(uv+vec2(mod(tile,2.),floor(tile*.5)))*.5;
    vec3 ink=texture(uCoinAtlas,atlasUV).rgb;
    float engrave=.5+.5*cos(r*92.);
    float radial=pow(abs(cos(ang*26.)),52.);
-   float milled=pow(abs(sin(ang*82.)),7.);
+   float milled=pow(abs(sin(ang*96.)),9.);
+   float bevelR=exp(-pow((r-.339)*43.,2.));
    float metalFlash=pow(max(dot(N,normalize(K+V)),0.),93.);
    float specB=pow(max(dot(N,normalize(F+V)),0.),27.);
    vec3 gold=ink*vec3(1.22,1.06,.77);
    // Do not flatten the stamped relief; deeply recessed channels stay dark.
    float illumination=.38+.55*nk+.15*nf;
-   vec3 minted=gold*illumination;
+   vec3 minted=gold*illumination*(1.-back*.12);
    minted+=vec3(1.,.76,.36)*metalFlash*1.9;
    minted+=vec3(.52,.72,1.0)*specB*.42;
    minted+=vec3(1.,.85,.48)*fres*.20;
@@ -147,6 +150,7 @@ void main(){
    minted*=1.-shadowGroove*.19;
    vec3 edgeGold=vec3(.64,.33,.09)*(.38+.84*nk+.30*nf)+vec3(1.,.77,.35)*milled*.14;
    edgeGold+=vec3(1.,.82,.49)*metalFlash*.94;
+   edgeGold+=vec3(.18,.13,.06)*bevelR;
    outC=mix(edgeGold,minted,face);
    if(tile>.5&&tile<1.5)outC*=vec3(1.15,.74,.67);
    if(tile>1.5&&tile<2.5)outC*=vec3(.63,1.10,1.44);
@@ -1089,6 +1093,12 @@ const a=i*T/48;const x=Math.cos(a),y=Math.sin(a);
 c.beginPath();c.moveTo(x*101,y*101);c.lineTo(x*(i%4===0?108:105),y*(i%4===0?108:105));
 c.strokeStyle=i%4===0?pal[3]:'#fff5bc82';c.lineWidth=i%4===0?2.4:1.5;c.stroke();
 }
+// Individually minted legends: engraved inner relief and rotating border rosettes.
+for(let k=0;k<32;k++){
+ const a=(k+.5)*T/32,ri=(k%4===0?75:77),x=Math.cos(a),y=Math.sin(a);
+ c.save();c.translate(x*ri,y*ri);c.rotate(a+Math.PI/2);
+ c.font='bold 8px Georgia';c.textAlign='center';c.fillStyle=k%2===0?'#fff3ce9c':pal[3];c.fillText(k%4===0?'✦':'·',0,0);c.restore();
+}
 for(let i=0;i<12;i++){
 const a=i*T/12;const x=Math.cos(a),y=Math.sin(a);c.beginPath();c.arc(x*78,y*78,2,0,T);c.fillStyle=pal[0];c.fill();
 }
@@ -1100,6 +1110,13 @@ c.lineWidth=1.9;c.strokeStyle='#ffffff7b';c.beginPath();c.arc(-1,-2,66,Math.PI,M
 for(let i=0;i<16;i++){
 let a=i*T/16;const x=Math.cos(a),y=Math.sin(a);c.beginPath();c.moveTo(x*29,y*29);c.lineTo(x*(i%2?51:57),y*(i%2?51:57));c.strokeStyle=i%2?'#fff6d283':'#81471669';c.lineWidth=i%2?2.4:4;c.stroke();
 }
+// Fine scratches and stamped imperfections read as worked metal, never plastic.
+for(let n=0;n<28;n++){
+ const a=(n*2.39996+kind.length*.47),radius=19+(n*13.37)%41;
+ c.save();c.translate(Math.cos(a)*radius,Math.sin(a)*radius);c.rotate(a);
+ c.strokeStyle=n%3===0?'#4c2b182e':'#fff3c52b';c.lineWidth=n%4===0?1.35:.7;
+ c.beginPath();c.moveTo(-2-n%3,0);c.lineTo(2+n%4,0);c.stroke();c.restore();
+}
 const symbol=kind==='bomb'?'✹':kind==='storm'?'ϟ':kind==='rock'?'◆':'✦';
 c.shadowColor='#0007';c.shadowBlur=4;c.font=kind==='storm'?'bold 86px Georgia':'bold 80px Georgia';c.textAlign='center';c.textBaseline='middle';
 c.fillStyle=pal[3];c.fillText(symbol,2,5);c.shadowBlur=0;c.fillStyle=pal[0];c.fillText(symbol,-3,0);
@@ -1109,6 +1126,32 @@ c.lineWidth=3;c.strokeStyle='#fff4ba88';c.beginPath();c.arc(4,4,96,0.16,.42*T);c
 c.restore();return off;
 }
 const minted={normal:makeMintedSprite('normal'),bomb:makeMintedSprite('bomb'),storm:makeMintedSprite('storm'),rock:makeMintedSprite('rock')};
+const coinSpec=[
+ ['normal','AUREUS · STRIKE','24K battle gold · sunburst seal','주화 회수 시 기본 공격과 마나 생성'],
+ ['bomb','CINDER · DETONATOR','Blackened copper · ignition rune','투입 시 충격파 · 회수 시 광역 폭발'],
+ ['storm','TEMPEST · ARC','Palladium & azure enamel','청뢰 문양 · 회수 시 번개 연쇄'],
+ ['rock','OBSIDIAN · OBSTACLE','Forged onyx · fractured crystal','적 공격 시 보드에 생기는 장애물']
+];
+function openCodex(){
+ if(!state||state.mode==='codex')return;
+ window.__codexPrevious=state.mode;
+ state.mode='codex';press=false;
+ $('coinGallery').innerHTML=coinSpec.map(([kind,name,material,desc])=>{
+  return '<article class="mintCard"><img alt="'+name+'" src="'+minted[kind].toDataURL('image/png')+'"><div><b>'+name+'</b><small>'+material+'</small><p>'+desc+'</p></div></article>';
+ }).join('');
+ const enemies=waveData.map((w,i)=>'<div class="foeItem"><span class="foeIcon" style="color:'+w.color+'">'+(w.boss?'✶':'⚔')+'</span><div><b>'+w.name+'</b><small>'+(w.boss?'BOSS · ':'ENEMY · ')+w.class+'</small></div><span class="foeTier">'+String(i+1).padStart(2,'0')+'</span></div>').join('');
+ $('foeGallery').innerHTML=enemies;
+ $('armory').hidden=false;
+}
+function closeCodex(){
+ $('armory').hidden=true;
+ if(state&&state.mode==='codex')state.mode=(window.__codexPrevious==='playing'?'playing':'demo');
+}
+$('codex').addEventListener('click',openCodex);
+$('codexClose').addEventListener('click',closeCodex);
+$('armory').addEventListener('pointerdown',e=>{if(e.target.id==='armory')closeCodex();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('armory').hidden)closeCodex();});
+
 if(gl){
 const atlas=document.createElement('canvas');atlas.width=512;atlas.height=512;
 const a=atlas.getContext('2d');
