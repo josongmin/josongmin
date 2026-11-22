@@ -155,7 +155,13 @@ jobs:
                   for(const key of ['began','primed','physicalParry','fever','wallProtected','ready','boosted','guardBroken','tilted','spawned','cleansed','golemStunned','titanWeak'])
                     assert(mechanics[key],key+' failed',{engine,lite,mechanics});
                   assert(mechanics.guardedDamage>0&&mechanics.guardedDamage<7,'Shield was ineffective',{engine,lite,mechanics});
-                  if(!lite)await page.locator('#view').click();
+                  await page.evaluate(()=>{
+          const d=window.__battleDozerDebug,s=d.state;
+          s.wave=0;s.mode='playing';s.warning=0;s.threatLane=-1;s.enemy=s.maxEnemy=1000000;
+          s.cost=12;s.mana=0;s.fever=0;
+          document.querySelector('#overlay').hidden=true;
+        });
+        if(!lite)await page.locator('#view').click();
                   await page.waitForTimeout(lite?70:800);
                   await page.locator('#gl').tap({position:{x:238,y:414}});
                   const aiming=await page.evaluate(()=>{
