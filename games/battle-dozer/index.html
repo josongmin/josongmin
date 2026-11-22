@@ -1678,8 +1678,38 @@ let gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);gr.addColorStop(0,color);gr
 for(let i=0;i<22;i++){let x=(i*101.31+Math.sin(t*.27+i*2)*9)%CW,y=(i*93.71+t*(5+i%3))%(CH*.54)+CH*.14;
 ctx.save();ctx.globalAlpha=.20+.16*Math.sin(t*.9+i);ctx.fillStyle=i%4?'#f8d6a1':'#a9eaff';ctx.beginPath();ctx.arc(x,y,i%5===0?1.8:.9,0,T);ctx.fill();ctx.restore();}
 
-if(state?.mode==='playing'){
 
+function drawStageOverlay(t){
+ if(!state||state.mode!=='playing')return;
+ const v=state, cls=waveData[v.wave].class;
+ function laneOverlay(lane,fill,stroke,alpha=.40){
+  if(lane<0)return;
+  const bounds=[[1.45,4.1],[-1.45,1.45],[-4.1,-1.45]][lane];
+  const far=worldZ(5.8),near=worldZ(11.65),a=project(bounds[0],.15,far),b=project(bounds[1],.15,far),
+   c=project(bounds[1],.15,near),d=project(bounds[0],.15,near);
+  ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=fill;ctx.strokeStyle=stroke;
+  ctx.lineWidth=2;ctx.shadowColor=stroke;ctx.shadowBlur=9;
+  ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);
+  ctx.closePath();ctx.fill();ctx.setLineDash([6,9]);ctx.stroke();ctx.restore();
+ }
+ if(cls==='SHIELD'&&v.shieldTimer<=0)laneOverlay(v.shieldLane,'#5a9fe824','#9fcfff',.40);
+ if(cls==='RAIDER'&&v.jamTimer>0)laneOverlay(v.jamLane,'#de605022','#ff9275',.38);
+ if(cls==='TITAN'&&v.weakLane>=0)laneOverlay(v.weakLane,'#fbd17d33','#ffe79e',.60+.15*Math.sin(t*9));
+ if(Math.abs(v.boardTilt)>.05){
+  const a=project(0,.21,worldZ(8.5));
+  ctx.save();ctx.font='900 24px system-ui';ctx.textAlign='center';
+  ctx.fillStyle='#fce9ae';ctx.shadowColor='#fcad70';ctx.shadowBlur=11;
+  ctx.fillText(v.boardTilt>0?'➤ ➤ ➤':'◀ ◀ ◀',a.x,a.y-16);ctx.restore();
+ }
+ if(v.pushBurst>0){
+  const a=project(0,.32,worldZ(v.pusher+.2));
+  ctx.save();ctx.strokeStyle='#ffebad';ctx.globalAlpha=.50;ctx.shadowColor='#ffbc65';ctx.shadowBlur=15;
+  ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(a.x-CW*.34,a.y);ctx.lineTo(a.x+CW*.34,a.y);ctx.stroke();ctx.restore();
+ }
+}
+
+if(state?.mode==='playing'){
+drawStageOverlay(t);
 if(state.warning>0&&state.threatLane>=0){
  const bounds=[[1.45,4.1],[-1.45,1.45],[-4.1,-1.45]][state.threatLane],near=worldZ(11.7),far=worldZ(5.8);
  const a=project(bounds[0],.18,far),b=project(bounds[1],.18,far),c=project(bounds[1],.18,near),d=project(bounds[0],.18,near);
