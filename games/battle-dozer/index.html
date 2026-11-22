@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover, user-scalable=no"><title>BATTLE DOZER — ECLIPSE FORGE · Premium 3D</title><meta name="theme-color" content="#080d14"><style>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover, user-scalable=no"><title>BATTLE DOZER — ARTISAN FORGE · Premium 3D</title><meta name="theme-color" content="#080d14"><style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 32%,#26231d 0%,#0d1119 42%,#080b13 88%);color:#f7ead2;font-family:ui-sans-serif,system-ui,-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}button{font:inherit;cursor:pointer}button:disabled{cursor:not-allowed}#app{position:relative;width:min(100vw,520px,calc(98svh * 9 / 16));height:min(100svh,940px);margin:auto;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 31%,#3c2d2c 0,#192030 32%,#0c1520 72%,#070d16 100%);box-shadow:0 0 0 1px #e5c17f26,0 0 60px #0008,0 26px 130px #000}@media(min-width:620px){#app{border:1px solid #bc935a60;border-radius:14px;margin-top:max(0px,calc((100svh - min(100svh,940px))/2))}}#gl,#fx{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;-webkit-tap-highlight-color:transparent}#gl{background:transparent}#fx{pointer-events:none}#edge{pointer-events:none;position:absolute;inset:0;border:1px solid #d8b47830;box-shadow:inset 0 0 64px #02050bab;background:linear-gradient(#05070a99,transparent 25%,transparent 75%,#03071080)}
 .top{position:absolute;inset:0 0 auto;z-index:3;padding:11px 16px 16px;background:linear-gradient(#090d14f8 8%,#0a1018dd 60%,transparent);pointer-events:none}.topline{display:flex;justify-content:space-between;align-items:center;gap:8px}.logo{font-family:Georgia,serif;letter-spacing:2px;font-size:17px;font-weight:900;line-height:1;color:#ffefc8;text-shadow:0 0 25px #b98d4a88}.logo em{font-style:normal;color:#d5aa67}.subtitle{display:block;font:600 7px system-ui;letter-spacing:3.3px;color:#ab9984;margin-top:6px}.topright{display:flex;align-items:center;gap:10px;font-size:10px;color:#e8d4b3}.topright span b{color:#fff0cb;font-size:13px}.iconbtn{pointer-events:auto;background:#151e2bdc;border:1px solid #bfa17166;color:#f5deb0;border-radius:9px;width:29px;height:29px;display:grid;place-items:center;font-size:13px}.levelstrip{margin-top:12px;display:flex;gap:7px;align-items:center;justify-content:space-between;font:700 9px system-ui;letter-spacing:1.3px;color:#d0b997}.levelstrip .index{font-weight:600;color:#f3e3c9}.bossbar{margin-top:6px;height:7px;width:100%;overflow:hidden;border:1px solid #ad775948;background:#251a26;border-radius:10px}.bossbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#952f48,#f65b70 65%,#ffc1a1);box-shadow:0 0 14px #e75061;transition:width .16s}.bossinfo{margin-top:4px;display:flex;justify-content:space-between;color:#b5a4a1;font-size:8px;letter-spacing:1px}.bossinfo b{color:#f6d6bb}
 .bottom{position:absolute;bottom:0;left:0;right:0;z-index:3;padding:19px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#111722ee 12%,#0e1522 35%,#0a101a 100%);border-top:1px solid #d3ad672c;box-shadow:0 -20px 40px #0b122f50}.ledger{display:flex;align-items:center;gap:10px;padding:0 6px 11px}.coincount{display:flex;align-items:center;gap:7px;white-space:nowrap;min-width:97px}.mini-coin{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;color:#724619;font-size:14px;text-shadow:0 1px #ffe4ad;background:radial-gradient(circle at 34% 27%,#fff6bd,#ecc56b 40%,#ae6a24 78%,#ffe19c 90%);border:2px solid #f7d18e;box-shadow:inset 0 -2px 3px #90531b,0 0 9px #c78e4444}.coincount strong{font-family:Georgia,serif;font-size:27px;color:#ffebbd}.energy{flex:1;min-width:70px}.energyhead{display:flex;justify-content:space-between;gap:3px;font:700 8px system-ui;letter-spacing:1px;color:#9cbbc2;margin-bottom:5px}.energyhead b{color:#b7f5ff}.bar{border:1px solid #527d8d88;background:#07101b;height:8px;border-radius:10px;overflow:hidden}.bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,#26778d,#76d9f1,#dcffff);box-shadow:0 0 14px #63d0ff;transition:width .13s}.chain{text-align:right;min-width:68px;color:#b8a58f;font:700 8px system-ui;letter-spacing:1.1px}.chain b{display:block;font:900 24px Georgia;color:#ffe0a0}.skills{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr 1fr;gap:6px}.skill{padding:8px 2px 7px;min-width:0;height:67px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;color:#d7c7ab;border-radius:11px;border:1px solid #ac955c55;background:linear-gradient(145deg,#2b3542,#131c2b 55%,#101824);box-shadow:inset 0 1px #ffffff1a,0 5px 15px #0005;touch-action:manipulation}.skill.active{border-color:#ffe6a3;background:linear-gradient(140deg,#705b3d,#392f2b 45%,#1b2635);box-shadow:inset 0 1px #fff6c344,0 0 16px #fbc97744}.skill:active{transform:scale(.96)}.skill:disabled{opacity:.36;filter:saturate(.5)}.sigil{font:600 25px Georgia;line-height:23px;color:#f2c67d;text-shadow:0 0 10px #e0a54c50}.skill[data-skill=bomb] .sigil{color:#ff9574}.skill[data-skill=storm] .sigil{color:#96e7ff}.skill[data-skill=wall] .sigil{color:#93efc4}.skill[data-skill=shake] .sigil{color:#d5a7ff}.skill label{font:800 9px system-ui;letter-spacing:.35px}.skill small{font:600 8px system-ui;color:#a2a9b8}.help{text-align:center;font-size:9px;color:#9b928d;padding-top:8px;letter-spacing:.1px}
@@ -54,7 +54,7 @@
 .feverChip{position:absolute;z-index:4;top:calc(108px + env(safe-area-inset-top));right:12px;pointer-events:none;border:1px solid #f6cc7d9c;border-radius:50px;background:#30251edb;box-shadow:0 0 20px #ffc66a45;color:#ffe3a2;padding:7px 11px;font:900 11px system-ui;letter-spacing:1px}
 .threat:not([hidden]) ~ .feverChip{top:calc(171px + env(safe-area-inset-top))}
 @media(max-width:380px){.threat{top:calc(106px + env(safe-area-inset-top));padding:7px 9px}.threat .threatSmall{font-size:8px}}
-</style></head><body><div id="app"><canvas id="gl" aria-label="Battle Dozer 3D 게임"></canvas><canvas id="fx" aria-hidden="true"></canvas><div id="edge"></div><div class="top"><div class="topline"><div><div class="logo">BATTLE <em>DOZER</em></div><span class="subtitle">ECLIPSE FORGE · 3D ARCADE RPG</span></div><div class="topright"><span>✚ <b id="hp">100</b></span><span>⛨ <b id="shield">8</b></span><button class="iconbtn" id="view" aria-label="카메라 각도 전환" title="동전 적층 보기">◈</button><button class="iconbtn" id="pause" aria-label="일시정지">Ⅱ</button></div></div><div class="levelstrip"><span id="stage">CHAPTER I · THE VAULT</span><span class="index" id="clock">00:00</span></div><div class="bossbar"><i id="enemybar"></i></div><div class="bossinfo"><span id="enemyname">DUSK SENTINEL</span><span id="enemyhp">520 / 520</span></div></div><div id="threat" class="threat" hidden><div class="threatMain"><div class="threatTop"><span id="threatLabel">⚠ COUNTER LEFT</span><span id="threatProgress">0/2</span></div><div class="threatSmall">표시된 레인에 코인을 투입해 반격</div><div class="threatMeter"><i id="threatBar" style="width:0%"></i></div></div><span id="threatCountdown" class="threatCountdown">6.0</span></div><div id="feverChip" class="feverChip" hidden>✦ FEVER 0.0s</div><div id="perf">60 FPS · STACK SIM</div><div id="callout" class="callout">BONUS CHAIN!</div><div id="burst" class="comboburst">15 CHAIN!</div><div class="bottom"><div class="ledger"><div class="coincount"><span class="mini-coin">✦</span><strong id="ammo">60</strong></div><div class="energy"><div class="energyhead"><span>✦ MYSTIC ENERGY</span><b id="mana">0/12</b></div><div class="bar"><i id="energybar"></i></div></div><div class="chain">COMBO<b id="combo">×1</b></div></div><div class="skills"><button class="skill active" data-skill="normal"><span class="sigil">◉</span><label>COIN</label><small>DROP</small></button><button class="skill" data-skill="bomb"><span class="sigil">✹</span><label>BOMB</label><small id="bombs">×3</small></button><button class="skill" data-skill="storm"><span class="sigil">ϟ</span><label>STORM</label><small id="storms">×3</small></button><button class="skill" data-skill="wall"><span class="sigil">⛨</span><label>WALL</label><small id="wall">READY</small></button><button class="skill" data-skill="shake"><span class="sigil">〰</span><label>SHAKE</label><small id="shake">0%</small></button></div><div class="help">DROP TO ATTACK · MATCH WARNING LANE TO COUNTER</div></div><div class="overlay" id="overlay"><div class="modal" id="modal"><div class="overline">AN ORIGINAL COIN-PUSHER ACTION RPG</div><div class="emblem">✦</div><h1>BATTLE<br><em>DOZER</em></h1><div class="modepill">ECLIPSE FORGE · THE CLOCKWORK VAULT</div><p>동전을 겹쳐 쌓고, 마지막 한 번의 밀기로<br>수호자의 코어를 파괴하라.<br>⚠ 예고 레인 방어 · 13콤보 FEVER 발동</p><button class="cta" id="start">전투 시작 &nbsp; ✧</button><button class="mobile-mode" id="mobileMode" type="button">모바일 호환 렌더링 (2D)로 실행</button><div class="keyboard">TAP · STACK · PUSH · SHATTER</div></div></div></div><script>
+</style></head><body><div id="app"><canvas id="gl" aria-label="Battle Dozer 3D 게임"></canvas><canvas id="fx" aria-hidden="true"></canvas><div id="edge"></div><div class="top"><div class="topline"><div><div class="logo">BATTLE <em>DOZER</em></div><span class="subtitle">ARTISAN FORGE · 3D ARCADE RPG</span></div><div class="topright"><span>✚ <b id="hp">100</b></span><span>⛨ <b id="shield">8</b></span><button class="iconbtn" id="view" aria-label="카메라 각도 전환" title="동전 적층 보기">◈</button><button class="iconbtn" id="pause" aria-label="일시정지">Ⅱ</button></div></div><div class="levelstrip"><span id="stage">CHAPTER I · THE VAULT</span><span class="index" id="clock">00:00</span></div><div class="bossbar"><i id="enemybar"></i></div><div class="bossinfo"><span id="enemyname">DUSK SENTINEL</span><span id="enemyhp">520 / 520</span></div></div><div id="threat" class="threat" hidden><div class="threatMain"><div class="threatTop"><span id="threatLabel">⚠ COUNTER LEFT</span><span id="threatProgress">0/2</span></div><div class="threatSmall">표시된 레인에 코인을 투입해 반격</div><div class="threatMeter"><i id="threatBar" style="width:0%"></i></div></div><span id="threatCountdown" class="threatCountdown">6.0</span></div><div id="feverChip" class="feverChip" hidden>✦ FEVER 0.0s</div><div id="perf">60 FPS · STACK SIM</div><div id="callout" class="callout">BONUS CHAIN!</div><div id="burst" class="comboburst">15 CHAIN!</div><div class="bottom"><div class="ledger"><div class="coincount"><span class="mini-coin">✦</span><strong id="ammo">60</strong></div><div class="energy"><div class="energyhead"><span>✦ MYSTIC ENERGY</span><b id="mana">0/12</b></div><div class="bar"><i id="energybar"></i></div></div><div class="chain">COMBO<b id="combo">×1</b></div></div><div class="skills"><button class="skill active" data-skill="normal"><span class="sigil">◉</span><label>COIN</label><small>DROP</small></button><button class="skill" data-skill="bomb"><span class="sigil">✹</span><label>BOMB</label><small id="bombs">×3</small></button><button class="skill" data-skill="storm"><span class="sigil">ϟ</span><label>STORM</label><small id="storms">×3</small></button><button class="skill" data-skill="wall"><span class="sigil">⛨</span><label>WALL</label><small id="wall">READY</small></button><button class="skill" data-skill="shake"><span class="sigil">〰</span><label>SHAKE</label><small id="shake">0%</small></button></div><div class="help">DROP TO ATTACK · MATCH WARNING LANE TO COUNTER</div></div><div class="overlay" id="overlay"><div class="modal" id="modal"><div class="overline">AN ORIGINAL COIN-PUSHER ACTION RPG</div><div class="emblem">✦</div><h1>BATTLE<br><em>DOZER</em></h1><div class="modepill">ARTISAN FORGE · THE CLOCKWORK VAULT</div><p>동전을 겹쳐 쌓고, 마지막 한 번의 밀기로<br>수호자의 코어를 파괴하라.<br>⚠ 예고 레인 방어 · 13콤보 FEVER 발동</p><button class="cta" id="start">전투 시작 &nbsp; ✧</button><button class="mobile-mode" id="mobileMode" type="button">모바일 호환 렌더링 (2D)로 실행</button><div class="keyboard">TAP · STACK · PUSH · SHATTER</div></div></div></div><script>
 (()=>{'use strict';
 const root=document.getElementById('app');let canvas=document.getElementById('gl');const fxCanvas=document.getElementById('fx');
 const prefer2D=/(?:\?|&)lite=1(?:&|$)/.test(location.search);
@@ -66,7 +66,14 @@ const rand=(a,b)=>a+Math.random()*(b-a),clamp=(x,a,b)=>Math.max(a,Math.min(b,x))
 let state=null,coins=[],particles=[],numbers=[],slashes=[],rings=[],lastTick=0,frameAcc=0,press=false,hold=0,frameN=0,timer=null;
 let CW=540,CH=960,DPR=1,project=(x,y,z)=>({x:CW/2,y:CH/2,front:true}),draw3d=()=>{},updateCamera=()=>{},coinAtlas=null,cameraMode=0,cameraBlend=0;
 const worldZ=z=>5.28-z*.865;
-const waveData=[{name:'DUSK SENTINEL',hp:720,damage:14,color:'#d7a46b'}, {name:'RUIN KNIGHT',hp:1280,damage:18,color:'#bb9afb'}, {name:'IRON GOLEM',hp:4200,damage:23,color:'#f0ba68'}];
+const waveData=[
+{name:'DUSK RAIDER',hp:580,damage:12,color:'#e69b8d',class:'RAIDER',boss:false},
+{name:'AEGIS GUARD',hp:890,damage:14,color:'#a0c1df',class:'SHIELD',boss:false},
+{name:'RUNE CASTER',hp:1120,damage:15,color:'#c7a7ff',class:'MAGE',boss:false},
+{name:'IRON GOLEM',hp:1960,damage:18,color:'#f3be80',class:'GOLEM',boss:true},
+{name:'ABYSS COLOSSUS',hp:2900,damage:21,color:'#b8a6fc',class:'COLOSSUS',boss:true},
+{name:'ECLIPSE TITAN',hp:3800,damage:24,color:'#ffdc99',class:'TITAN',boss:true}
+];
 if(gl){
 try{
 const vertex=`#version 300 es
@@ -679,14 +686,14 @@ function beginThreat(){
  if(!state||state.mode!=='playing')return;
  const s=state;
  s.threatLane=(s.wave+s.parries+Math.floor(s.time/11))%3;
- s.threatCount=0;s.threatNeed=Math.max(1,(s.wave===2?3:2)-(s.counterExpert?1:0));
- s.warning=6.0;s.enemyTimer=s.wave===2?11:13;
+ s.threatCount=0;s.threatNeed=Math.max(1,(waveData[s.wave].boss?3:2)-(s.counterExpert?1:0));
+ s.warning=waveData[s.wave].boss?6.2:6.0;s.enemyTimer=waveData[s.wave].boss?11:13;
  showBanner('⚠ '+LANE_NAMES[s.threatLane]+' · 반격 준비');
  refresh();
 }
 function counterBoss(){
  const s=state;if(s.mode!=='playing'||s.warning<=0)return;
- s.warning=0;s.threatLane=-1;s.threatCount=0;s.enemyTimer=s.wave===2?11:13;
+ s.warning=0;s.threatLane=-1;s.threatCount=0;s.enemyTimer=waveData[s.wave].boss?11:13;
  s.bossStun=Math.max(s.bossStun,3.0);s.parries++;
  s.ammo=Math.min(s.maxAmmo,s.ammo+(s.counterExpert?9:6));s.shake=Math.min(100,s.shake+16);
  if(s.parries%2===0)s.storm++;
@@ -712,7 +719,7 @@ function activateFever(){
 function landBossAttack(){
  const s=state;if(s.mode!=='playing')return;
  const partial=s.threatCount;s.warning=0;s.threatLane=-1;s.threatCount=0;
- s.enemyTimer=s.wave===2?10.5:12.5;
+ s.enemyTimer=waveData[s.wave].boss?10.5:12.5;
  if(s.wall>0){
    s.wall=0;s.shield=Math.min(60,s.shield+5);s.shake=Math.min(100,s.shake+18);
    showBanner('⛨ AEGIS BLOCK · PERFECT DEFENSE');
@@ -725,8 +732,8 @@ function landBossAttack(){
  damageFloat(3.4,3.4,8.1,'-'+Math.round(incoming-absorbed),'#ff9b8f',true);
  addShock(3.4,1.8,8.1,'#ff796d',1.3);
  burst(3.4,2.5,8.1,'#ff8a7c',23,1.35);
- if(s.wave>=1)for(let i=0;i<(s.wave===2?3:2);i++)if(coins.length<185)coins.push(makeCoin('rock',rand(-3.6,3.6),rand(5.5,8.5)));
- showBanner(s.wave===2?'GOLEM SLAM!':'GUARD BROKEN!');sound('bomb');haptic(18);
+ if(s.wave>=1)for(let i=0;i<(waveData[s.wave].boss?3:1);i++)if(coins.length<185)coins.push(makeCoin('rock',rand(-3.6,3.6),rand(5.5,8.5)));
+ showBanner(waveData[s.wave].boss?'BOSS SLAM!':'GUARD BROKEN!');sound('bomb');haptic(18);
  if(s.hp<=0)showResult(false);else refresh();
 }
 
@@ -791,15 +798,15 @@ showBanner('✦ BLOSSOM STORM');burst(2.5,2,7.2,'#ffa4df',45,1.7);sound('power')
 refresh();
 }
 function waveWin(){if(state.mode!=='playing')return;
-sound('power');state.gold+=75;state.combo=0;state.warning=0;state.threatLane=-1;state.bossStun=0;
-if(state.wave===2){state.mode='victory';showResult(true);return}
+sound('power');state.gold+=waveData[state.wave].boss?135:65;state.combo=0;state.warning=0;state.threatLane=-1;state.bossStun=0;
+if(state.wave===waveData.length-1){state.mode='victory';showResult(true);return}
 state.mode='upgrade';let pool=[...abilities].sort(()=>Math.random()-.5).slice(0,3);
 $('modal').innerHTML=`<div class="overline">CHAPTER ${state.wave+1} CONQUERED</div><div class="emblem">✦</div><h2>BLESSING</h2><p>다음 전투를 위한 축복을 골라.</p>${pool.map((a,i)=>`<button class="choice" data-choose="${i}"><b>✦ ${a.name}</b><small>${a.desc}</small></button>`).join('')}`;
 $('overlay').hidden=false;
 $('modal').querySelectorAll('[data-choose]').forEach(el=>el.onclick=()=>{
 pool[+el.dataset.choose].fn();state.wave++;state.enemy=waveData[state.wave].hp;state.maxEnemy=state.enemy;
-state.hp=Math.min(100,state.hp+15);state.shield+=6;state.ammo=Math.min(state.maxAmmo,state.ammo+28);state.bomb++;state.storm++;
-state.enemyTimer=12;state.warning=0;state.mode='playing';$('overlay').hidden=true;showBanner('THE NEXT GUARDIAN AWAKENS');refresh();
+state.hp=Math.min(100,state.hp+(waveData[state.wave].boss?20:15));state.shield+=8;state.ammo=Math.min(state.maxAmmo,state.ammo+28);state.bomb++;state.storm++;
+state.enemyTimer=12;state.warning=0;state.threatCount=0;state.threatLane=-1;state.mode='playing';$('overlay').hidden=true;showBanner((waveData[state.wave].boss?'⚔ BOSS AWAKENS · ':'NEXT ENCOUNTER · ')+waveData[state.wave].name);refresh();
 });
 }
 function showResult(won){
@@ -811,7 +818,7 @@ $('overlay').hidden=false;$('restart').onclick=start;
 }
 function refresh(){if(!state)return;
 $('hp').textContent=Math.max(0,Math.ceil(state.hp));$('shield').textContent=Math.floor(state.shield);
-$('stage').textContent=`CHAPTER ${['I','II','III'][state.wave]} · THE ECLIPSE FORGE`;
+$('stage').textContent=`CHAPTER ${['I','II','III','IV','V','VI'][state.wave]} · ARTISAN FORGE`;
 $('clock').textContent=`${String(Math.floor(state.time/60)).padStart(2,'0')}:${String(Math.floor(state.time%60)).padStart(2,'0')}`;
 $('enemybar').style.width=`${clamp(state.enemy/state.maxEnemy,0,1)*100}%`;
 $('enemyname').textContent=waveData[state.wave].name;
@@ -967,7 +974,7 @@ if(s.shots>18&&s.time-s.lastCollectTime>19&&s.time-(s.lastAssist||0)>15){
  for(const c of coins)if(!c.falling&&c.z>9.8&&c.y<.43)c.vz+=.55;
 }
 physics(dt);
-if(s.time>=270&&s.mode==='playing'){showResult(false);return}
+if(s.time>=860&&s.mode==='playing'){showResult(false);return}
 if(Math.floor(s.time*3)!==Math.floor((s.time-dt)*3))refresh();
 }
 function updateFx(dt){for(let i=particles.length-1;i>=0;i--){let a=particles[i];a.age+=dt;a.x+=a.vx*dt;a.y+=a.vy*dt;a.vy+=110*dt;if(a.age>a.life)particles.splice(i,1)}
