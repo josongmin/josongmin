@@ -478,7 +478,7 @@ function drawFighter(t){
 }
 
 function drawEnemy(t){
- const w=state?.wave||0,scale=[.67,.80,.73,1.05,1.15,1.22][w]||1;
+ const w=state?.wave||0,scale=[.67,.80,.73,.90,.98,1.04][w]||1;
  const cx=-2.75,cz=8.83,hit=state?.hit||0,warn=state?.warning||0;
  const bob=Math.sin(t*1.47)*.062;
  const stagger=hit?Math.sin(t*76)*hit*.14:0;
@@ -575,15 +575,15 @@ function drawEnemy(t){
  f('oct',0,2.14,-1.14,.30,.43,.23,'#fff7db',.20,.46);
  for(const s of [-1,1]){
   // Big sloping pauldron / layered fist, animates before the slam.
-  f('bevel',s*1.54,2.55,.05,1.22,1.04,1.32,armor,.71,0,0,0,s*-.16);
+  f('sphere',s*1.54,2.55,.05,.73,.63,.71,armor,.71,0,0,0,s*-.16);
   f('bevel',s*1.63,2.84,-.32,.73,.28,.56,gold,.86);
   f('oct',s*1.56,3.23,.33,.44,.72,.57,col,.65);
-  f('bevel',s*1.83,1.48+attack*.56,-.37,.76,1.15,.84,col,.64,0,0,0,s*attack*.42);
-  f('bevel',s*2.04, .78+attack*.91,-.67,.99,.84,.99,armor,.78,0,0,0,s*attack*.30);
+  f('sleeve',s*1.83,1.48+attack*.56,-.37,.94,1.24,1.04,col,.64,0,0,0,s*attack*.42);
+  f('sphere',s*2.04, .78+attack*.91,-.67,.54,.48,.53,armor,.78,0,0,0,s*attack*.30);
   for(let n=-1;n<=1;n++)f('blade',s*2.08+n*.17,.40+attack*.90,-1.21,.10,.33,.14,gold,.88);
  }
- f('bevel',0,3.48,-.04,1.63,1.28,1.18,col,.65);
- f('bevel',0,3.67,-.66,1.35,.35,.19,gold,.89);
+ f('sphere',0,3.48,-.04,.88,.72,.65,col,.65);
+ f('bevel',0,3.67,-.66,1.16,.27,.18,gold,.89);
  for(const s of [-1,1]){
   f('oct',s*.70,4.18,.1,.41,.81,.49,armor,.64);
   f('blade',s*.91,4.56,.12,.40,.71,.35,gold,.79,0,0,s*.15);
