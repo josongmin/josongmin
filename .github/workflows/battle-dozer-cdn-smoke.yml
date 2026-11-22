@@ -1,0 +1,68 @@
+name: Battle Dozer — HTTPS Mobile Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'games/battle-dozer/**'
+      - '.github/workflows/battle-dozer-cdn-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify HTTPS HTML on third-party CDN
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://raw.githack.com/josongmin/josongmin/main/games/battle-dozer/index.html"
+          for i in {1..10}; do
+            code=$(curl -L -sS -o /tmp/bd.html -w "%{http_code}" --max-time 20 "$url" || true)
+            if [[ "$code" == "200" ]] && grep -q 'BATTLE DOZER' /tmp/bd.html; then break; fi
+            echo "Attempt $i: HTTP $code"
+            sleep 4
+          done
+          test -s /tmp/bd.html
+          grep -q 'BATTLE DOZER' /tmp/bd.html
+          grep -q '__battleDozerDebug' /tmp/bd.html
+          curl -ILsS "$url" | grep -i -E 'HTTP/|content-type' | tail -5
+      - name: Install Playwright
+        shell: bash
+        run: |
+          npm --version
+          npm install --no-save --no-package-lock playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Browser smoke test (mobile + fallback)
+        shell: bash
+        run: |
+          node <<'JS'
+          const {chromium}=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            try{
+              const url='https://raw.githack.com/josongmin/josongmin/main/games/battle-dozer/index.html';
+              for(const lite of [false,true]){
+                const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+                const errors=[];
+                page.on('pageerror',e=>errors.push(String(e)));
+                await page.goto(url+(lite?'?lite=1':''),{waitUntil:'domcontentloaded',timeout:60000});
+                await page.locator('#start').click({timeout:15000});
+                await page.waitForTimeout(1800);
+                const before=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
+                await page.locator('#gl').tap({position:{x:180,y:440}});
+                await page.waitForTimeout(500);
+                const after=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
+                console.log('SMOKE',JSON.stringify({lite,before,after,errors}));
+                if(after.mode!=='playing'||!after.coins||errors.length)throw new Error('Mobile game failed: '+JSON.stringify({lite,after,errors}));
+                await page.close();
+              }
+            }finally{await browser.close()}
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
