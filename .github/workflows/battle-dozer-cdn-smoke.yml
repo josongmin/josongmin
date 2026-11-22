@@ -34,6 +34,7 @@ jobs:
           test -s /tmp/bd.html
           grep -q 'BATTLE DOZER' /tmp/bd.html
           grep -q '__battleDozerDebug' /tmp/bd.html
+          grep -q 'window.BATTLE_DOZER_ART=' /tmp/bd.html
           grep -q 'function laneOfX(x){return x>1.45?0:x<-1.45?2:1}' /tmp/bd.html
           curl -LsS -D /tmp/bd-headers.txt -o /tmp/bd.html "$url"
           grep -i -E 'HTTP/|content-type' /tmp/bd-headers.txt | tail -5
@@ -78,6 +79,19 @@ jobs:
                   const d0=await page.evaluate(()=>window.__battleDozerDebug?.metrics());
                   assert(d0&&d0.stage===0&&d0.difficulty==='normal'&&d0.count>70,'Game did not boot',d0);
                   assert(lite?!d0.world3d:d0.world3d,'WebGL/fallback mismatch',d0);
+                  await page.waitForFunction(()=>{
+                    const m=window.__battleDozerDebug?.metrics();
+                    return m?.heroArtLoaded&&m?.bossArtLoaded;
+                  },null,{timeout:16000});
+                  const art=await page.evaluate(()=>window.__battleDozerDebug.metrics());
+                  assert(art.artMode==='2.5d-premium'&&art.heroArtLoaded&&art.bossArtLoaded,
+                    'Premium game art did not load',{engine,lite,art});
+                  await page.locator('#artToggle').click();
+                  const oldArt=await page.evaluate(()=>window.__battleDozerDebug.metrics());
+                  assert(oldArt.artMode==='procedural','Legacy comparison toggle failed',oldArt);
+                  await page.locator('#artToggle').click();
+                  assert(await page.evaluate(()=>window.__battleDozerDebug.metrics().artMode)==='2.5d-premium',
+                    'Cinematic art toggle did not restore premium rendering');
                   await page.locator('#gl').tap({position:{x:181,y:412}});
                   await page.waitForTimeout(400);
                   assert(errors.length===0,'JS errors after touch',{errors});
