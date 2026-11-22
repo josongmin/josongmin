@@ -76,6 +76,31 @@ jobs:
                 const after=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
                 console.log('SMOKE',JSON.stringify({engine,lite,before,after,errors}));
                 if(after.mode!=='playing'||!after.coins||errors.length)throw new Error('Mobile game failed: '+JSON.stringify({lite,after,errors}));
+                const gameplay=await page.evaluate(()=>{
+                  const d=window.__battleDozerDebug,s=d.state;
+                  s.warning=0;s.bossStun=0;s.enemyTimer=.01;
+                  d.step(.05);
+                  const began=s.warning>0&&s.threatLane>=0;
+                  const lane=s.threatLane,need=s.threatNeed;
+                  s.aimX=[-3,0,3][lane];s.ammo=Math.max(15,s.ammo);
+                  for(let i=0;i<need;i++)d.drop();
+                  const parried=s.parries>=1&&s.bossStun>0&&s.warning===0;
+                  s.combo=s.feverThreshold-1;s.comboT=s.time;s.fever=0;s.feverCooldown=0;
+                  d.collect({kind:'normal',x:0,releaseHeight:.20});
+                  const fever=s.fever>0&&s.feverTimes>0;
+                  s.bossStun=0;s.enemyTimer=.01;d.step(.05);
+                  s.wall=6;s.warning=.015;
+                  const priorHp=s.hp;d.step(.03);
+                  const shieldBlocked=s.hp===priorHp;
+                  s.enemy=5;d.deal(10);
+                  const upgrade=s.mode==='upgrade';
+                  if(upgrade)document.querySelector('[data-choose]').click();
+                  const nextWave=s.wave===1&&s.mode==='playing';
+                  return {began,lane,need,parried,parries:s.parries,fever,feverTimes:s.feverTimes,shieldBlocked,upgrade,nextWave,render:d.metrics().world3d};
+                });
+                console.log('GAMEPLAY',JSON.stringify({engine,lite,gameplay}));
+                if(!gameplay.began||!gameplay.parried||!gameplay.fever||!gameplay.shieldBlocked||!gameplay.upgrade||!gameplay.nextWave)
+                  throw new Error('Gameplay test failed: '+JSON.stringify({engine,lite,gameplay}));
                 await page.close();
               }
             }finally{await browser.close()}
