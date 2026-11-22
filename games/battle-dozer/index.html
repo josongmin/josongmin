@@ -739,8 +739,70 @@ c.fillStyle='#e6b97a';c.fillRect(-26,-12,52,8);dpoly([[-34,-35],[-44,-26],[-34,6
 c.fillStyle='#f4c2a6';c.beginPath();c.ellipse(0,-61,24,27,0,0,T);c.fill();dpoly([[-24,-62],[-27,-79],[-12,-96],[11,-94],[26,-81],[24,-64],[8,-77],[-9,-75]],'#242e45');dpoly([[-8,-95],[0,-113],[10,-100],[11,-90]],'#2f3349');
 c.fillStyle='#27354a';c.fillRect(-12,-62,3,3);c.fillRect(9,-62,3,3);
 c.save();c.translate(39,-22);c.rotate(-.6-swing);c.strokeStyle='#f9f1e3';c.lineWidth=11;c.beginPath();c.moveTo(0,12);c.lineTo(86,-113);c.stroke();c.strokeStyle='#a8d2e3';c.lineWidth=5;c.stroke();c.strokeStyle='#ffe6a5';c.lineWidth=7;c.beginPath();c.moveTo(-9,9);c.lineTo(11,-1);c.stroke();c.restore();c.restore();
+// 2D mobile fallback gets distinct playable silhouettes, not re-skinned stone bosses.
+const ew=state?.wave||0;
+if(ew<3){
+ const c2=c,cx=330,cy=304+Math.sin(t*1.7)*1.5;
+ c2.save();c2.translate(cx,cy);
+ const coat=['#423240','#435d6e','#56466e'][ew],trim=['#cf7b70','#b4dfe6','#bfa4ef'][ew],skin='#f0c7ac';
+ light(c2,0,-40,78,ew===2?'#9c91e840':'#d6a56d36');
+ // Shoes and fitted trousers
+ dpoly([[-27,24],[-36,66],[-10,70],[-6,31]],'#293448','#a29278',1.7);
+ dpoly([[12,29],[7,68],[34,68],[29,26]],'#283a4c','#a29278',1.7);
+ dpoly([[-39,56],[-41,72],[-8,72],[-7,57]],'#1b2939','#b4a078',1.6);
+ dpoly([[6,55],[4,72],[39,73],[39,58]],'#1b2939','#b4a078',1.6);
+ // Costume silhouette and cloak.
+ dpoly([[-28,-60],[-43,46],[-20,65],[24,59],[42,39],[27,-59]],coat,trim,2.2);
+ dpoly([[-32,-24],[-39,34],[-19,51],[-13,-27]],'#a1a5b2',trim,1.4);
+ dpoly([[18,-25],[14,48],[38,41],[33,-29]],'#bbc7ce',trim,1.4);
+ dpoly([[-28,-40],[-20,-65],[19,-64],[30,-41],[26,22],[-23,22]],coat,'#d5c29c',2.1);
+ dpoly([[-10,-61],[0,-38],[10,-61],[3,5],[-4,5]],trim);
+ c2.fillStyle='#c3a075';c2.fillRect(-28,17,56,7);
+ dpoly([[-5,13],[5,13],[7,26],[-7,26]],'#eedab3',trim,1.3);
+ for(const side of [-1,1]){
+   dpoly([[side*28,-45],[side*44,-39],[side*40,-8],[side*23,-14]],coat,trim,1.7);
+   dpoly([[side*35,-10],[side*49,-5],[side*48,35],[side*31,32]],'#31445b','#baa279',1.4);
+ }
+ // Character face, swept hair, weapon pose.
+ c2.fillStyle=skin;c2.beginPath();c2.ellipse(0,-86,22,26,0,0,T);c2.fill();
+ dpoly([[-23,-87],[-27,-112],[-8,-131],[14,-126],[28,-110],[23,-89],[10,-103],[-10,-101]],ew===2?'#342f51':'#263343','#b19b79',1.4);
+ c2.fillStyle='#293146';c2.fillRect(-11,-85,4,3);c2.fillRect(8,-85,4,3);
+ c2.fillStyle='#ab8a73';c2.fillRect(-3,-72,6,1);
+ if(ew===0){
+   // Raider bandana and twin knives.
+   dpoly([[-26,-109],[-10,-119],[27,-110],[25,-103],[-24,-100]],'#c65c5d');
+   dpoly([[-23,-103],[-37,-91],[-31,-128]],'#b35153');
+   for(const side of [-1,1]){
+    c2.save();c2.translate(side*48,15);c2.rotate(side*.48);
+    dpoly([[-6,23],[8,23],[8,-29],[0,-52],[-7,-29]],'#d6ebf0','#c2a168',2);
+    c2.fillStyle='#bf9870';c2.fillRect(-4,16,9,29);c2.restore();
+   }
+ }else if(ew===1){
+   // Broad Aegis shield and luminous mace.
+   dpoly([[-73,-24],[-33,-38],[-30,48],[-52,63],[-74,40]],'#8db6c5','#edddb5',3);
+   dpoly([[-66,-12],[-40,-23],[-38,35],[-53,48],[-67,31]],'#345569','#9de8ed',2);
+   dpoly([[-58,-10],[-50,-10],[-50,34],[-58,34]],'#cae2e8');
+   c2.save();c2.translate(52,-6);c2.rotate(.2);
+   c2.strokeStyle='#d7c5a2';c2.lineWidth=7;c2.beginPath();c2.moveTo(0,45);c2.lineTo(0,-30);c2.stroke();
+   dpoly([[-17,-42],[18,-42],[18,-13],[-17,-13]],'#b4c6d3','#f9db9d',2);c2.restore();
+ }else{
+   // Hooded mage with long sash, staff and two orbiting crystals.
+   dpoly([[-29,-109],[-7,-148],[26,-108],[23,-81],[-23,-82]],'#4e3d70','#bdabe7',1.8);
+   dpoly([[-20,11],[-37,67],[8,65],[-2,10]],'#755d9f');
+   c2.save();c2.translate(45,-10);c2.strokeStyle='#caa36e';c2.lineWidth=7;
+   c2.beginPath();c2.moveTo(0,80);c2.lineTo(0,-110);c2.stroke();
+   dpoly([[-15,-115],[0,-140],[16,-115],[0,-88]],'#95bff2','#c8eaff',2);
+   c2.restore();
+   for(const side of [-1,1]){
+    const x=side*69,y=-64+Math.sin(t*2+side)*4;
+    light(c2,x,y,24,'#b5a8ff65');
+    dpoly([[x,y-18],[x+13,y],[x,y+21],[x-13,y]],'#9e9fe8','#e1ddff',1.5);
+   }
+ }
+ c2.restore();
+}else{
 // enemy stone armor has multiple facets and glowing crystal core
-c.save();c.translate(334,301+Math.sin(t*1.6)*2);c.scale(state?.wave===2?1.05:.91,state?.wave===2?1.08:.91);const warn=state?.warning||0;
+c.save();c.translate(334,301+Math.sin(t*1.6)*2);c.scale([.96,1.05,1.12][Math.max(0,(state?.wave||3)-3)],[.96,1.06,1.16][Math.max(0,(state?.wave||3)-3)]);const warn=state?.warning||0;
 light(c,0,-25,75,warn?'#f35f564b':'#6be5fa3a');
 dpoly([[-48,13],[-58,61],[-21,64],[-11,13]],'#434d5d','#aa977d',2);dpoly([[20,13],[54,62],[21,63],[10,13]],'#485465','#a99780',2);
 dpoly([[-57,-67],[-77,-48],[-62,-11],[-42,-3]],'#69727d','#c9ac82',2);dpoly([[55,-65],[79,-46],[66,-11],[41,-3]],'#626c79','#c9ac82',2);
@@ -749,7 +811,20 @@ dpoly([[-27,-110],[-37,-136],[-22,-148],[24,-146],[38,-127],[28,-111]],'#4a5665'
 dpoly([[-26,-140],[-42,-152],[-40,-126]],'#a7a08e');dpoly([[25,-140],[41,-153],[40,-125]],'#aba08b');
 c.fillStyle='#9eecff';c.fillRect(-21,-128,13,5);c.fillRect(9,-128,13,5);
 dpoly([[0,-74],[23,-55],[0,-22],[-22,-55]],'#b7ebf1','#51b2d9',2);dpoly([[0,-74],[22,-55],[0,-54]],'#eefaff');light(c,0,-48,30,'#83e6ff72');
-dpoly([[-81,-41],[-91,-13],[-63,2],[-48,-31]],'#71808b','#b6a084',2);dpoly([[81,-43],[90,-14],[63,3],[48,-31]],'#71808b','#b6a084',2);c.restore();
+dpoly([[-81,-41],[-91,-13],[-63,2],[-48,-31]],'#71808b','#b6a084',2);dpoly([[81,-43],[90,-14],[63,3],[48,-31]],'#71808b','#b6a084',2);
+ if(ew===4){
+   dpoly([[-33,-124],[-63,-170],[-52,-92]],'#a08cda');
+   dpoly([[33,-124],[63,-170],[52,-92]],'#a08cda');
+   light(c,0,-43,50,'#b78aff65');
+ }else if(ew===5){
+   c.beginPath();c.ellipse(0,-162,72,15,0,0,T);c.strokeStyle='#f3c980';c.lineWidth=7;c.stroke();
+   dpoly([[-24,-137],[-44,-183],[-12,-158]],'#e7c17b');
+   dpoly([[24,-137],[44,-183],[12,-158]],'#e7c17b');
+   light(c,0,-43,55,'#ffe8a96c');
+ }
+ c.restore();
+}
+// Main machine back
 // Main machine back and deep perspective board.
 const backL=project(4.4,.02,worldZ(0)),backR=project(-4.4,.02,worldZ(0)),frontL=project(4.4,.02,worldZ(12.2)),frontR=project(-4.4,.02,worldZ(12.2));
 const conv=p=>[p.x/m,p.y/(H/840)];const tl=conv(backL),tr=conv(backR),bl=conv(frontL),br=conv(frontR);
