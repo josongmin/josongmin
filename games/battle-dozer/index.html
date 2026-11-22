@@ -1136,26 +1136,28 @@ if(kind==='bomb'&&state.bomb<=0)kind='normal';if(kind==='storm'&&state.storm<=0)
 if(kind==='bomb')state.bomb--;if(kind==='storm')state.storm--;
 let c=makeCoin(kind,clamp(state.aimX+rand(-.027,.027),-4,4),Math.max(3.95,state.pusher+.67));
 c.y=1.4+rand(0,.32);c.vz=rand(.15,.62);c.vy=-.65;c.rx=rand(-.12,.12);c.rz=rand(-.12,.12);c.spin=rand(-3,3);
-coins.push(c);state.shots++;state.ammo--;
+coins.push(c);state.shots++;state.ammo--;trackGame('drop',{kind,x:+c.x.toFixed(2),lane:laneOfX(c.x),ammo:state.ammo});
 // Initial readable reward: a few front-row coins receive a modest starting shove.
 if(state.shots<=2){let tipped=0;for(const o of coins){if(o!==c&&o.z>11.35&&o.z<12.2&&tipped<1){o.vz=Math.max(o.vz,1.45);tipped++;}}}
 if(state.shots%2===0)burst(c.x,c.y,worldZ(c.z),'#ffe6a8',4,.4);
 if(kind==='bomb'){
 for(const a of coins){if(a===c)continue;let dx=a.x-c.x,dz=a.z-c.z,d=Math.hypot(dx,dz);
 if(d<1.9){a.vz+=3.0*(1-d/2);a.vx+=dx*(1.2-d*.45)}}
+cleanCurses(c.x,c.z,2.4);
 burst(c.x,.5,worldZ(c.z),'#ff9a57',32,1.15);sound('bomb');}
-else if(kind==='storm'){burst(c.x,.5,worldZ(c.z),'#8ae8ff',29,1.05);sound('storm')}
+else if(kind==='storm'){cleanCurses(c.x,c.z,2.8);burst(c.x,.5,worldZ(c.z),'#8ae8ff',29,1.05);sound('storm')}
 else if(state.shots%3===0)sound('coin');
 state.lastShot=state.time;state.selected='normal';
-if(state.warning>0&&state.threatLane===laneOfX(c.x)){
- state.threatCount++;
- if(state.threatCount>=state.threatNeed)counterBoss();
- else {showBanner('PARRY '+state.threatCount+'/'+state.threatNeed);sound('collect');}
+if(state.warning>0&&state.threatLane===laneOfX(c.x)&&!state.threatPrimed){
+ state.threatPrimed=true;state.threatCount=1;
+ showBanner('◎ LOCKED · 이제 같은 레인에서 동전을 떨어뜨려라');
+ trackGame('counter_primed',{lane:state.threatLane});
+ sound('collect');
 }
 refresh();
 }
-function wallSkill(){if(state.mode!=='playing'||state.wallCooldown>0)return;state.wall=6;state.wallCooldown=24;showBanner('AEGIS WALL · 보호막 전개');sound('power');refresh();}
-function shakeSkill(){if(state.mode!=='playing'||state.shake<100)return;state.shake=0;
+function wallSkill(){if(state.mode!=='playing'||state.wallCooldown>0)return;trackGame('wall');state.wall=6;state.wallCooldown=24;showBanner('AEGIS WALL · 보호막 전개');sound('power');refresh();}
+function shakeSkill(){if(state.mode!=='playing'||state.shake<100)return;trackGame('shake');state.shake=0;
 for(const c of coins){if(c.falling)continue;c.vz+=rand(.65,2.5);c.vx+=rand(-.8,.8);c.vy+=rand(.5,1.5);c.wx+=rand(-2,2);c.wz+=rand(-2,2)}
 burst(0,.2,-2.5,'#dbafff',56,1.6);showBanner('VAULT SHOCKWAVE!');sound('bomb');refresh();}
 function dmg(n,special=false){if(state.mode!=='playing')return;
@@ -1166,29 +1168,105 @@ if(special||state.combo%8===0)sound(special?'storm':'hit');
 if(special||state.combo%3===0)addSlash(-2.7,2.5,7.9,special?1.75:1.0,special?'#c2edff':'#ffe5a5');
 if(special){addShock(-2.72,2.3,8.15,'#ffe1af',1.45);state.cameraKick=Math.max(state.cameraKick,.13);}
 else if(state.combo%8===0)state.cameraKick=Math.max(state.cameraKick,.045);
+if(state.wave===5&&state.enemy>0&&state.enemy/state.maxEnemy<=.23&&state.weakLane<0){
+ state.weakLane=laneOfX(state.aimX);state.weakTimer=7;
+ trackGame('weakpoint',{lane:state.weakLane});showBanner('✶ ECLIPSE CORE EXPOSED · '+LANE_NAMES[state.weakLane]);
+}
 if(state.enemy<=0)waveWin();else refresh();
 }
-function collect(c){if(c.kind==='rock'){state.shake=Math.min(100,state.shake+8);burst(c.x,.13,-5.5,'#8d9baf',8,.7);return}
-state.collected++;state.lastCollectTime=state.time;state.gold++;if(state.collected%4===0)sound('collect');state.ammo=Math.min(state.maxAmmo,state.ammo+1);state.shake=Math.min(100,state.shake+2.9);
-const lane=c.x>1.45?0:c.x<-1.45?2:1;
-state.combo=state.time-state.comboT<.82?state.combo+1:1;state.comboT=state.time;state.best=Math.max(state.best,state.combo);
-if(state.combo>=state.feverThreshold && state.fever<=0 && state.feverCooldown<=0)activateFever();
-if(state.collected%22===0){state.bomb++;state.ammo=Math.min(state.maxAmmo,state.ammo+5);showBanner('✦ TREASURE DROP · FREE BOMB');burst(c.x,.4,-5.7,'#ffe0a0',26,1.2);}
-let mult=1+Math.min(state.combo-1,25)*.03+(state.combo>=8?state.chainBoost:0);
-if(lane===1)state.mana+=2;else state.mana++;if(lane===2)state.shield=Math.min(60,state.shield+2);
-// The height of the physical stack at the lip now matters in combat.
-const layers=clamp(Math.floor(((c.releaseHeight??.1)-.035)/.145),0,3);
-let damage=(10+(lane===0?4:0))*state.blade*mult*(1+layers*.16);
-if(layers>=2 && state.combo%5===0)damageFloat(c.x,.45,-5.7,`STACK ×${layers+1}`,'#ffe0a6',false);
-if(c.kind==='bomb'){haptic(18);addShock(c.x,.4,-5.4,'#ff9764',1.75);damage+=145*state.magic;showBanner('✹ INFERNO BURST');burst(c.x,.55,-5.2,'#ff966b',42,2);}
-if(c.kind==='storm'){haptic(12);addShock(c.x,.4,-5.4,'#95e8ff',1.75);damage+=175*state.magic;showBanner('ϟ TEMPEST STRIKE');burst(c.x,.65,-5.1,'#8bdeff',42,2);}
-const pz=-5.65, col=['#ffa67c','#95e9ff','#99e8b1'][lane];burst(c.x,0,pz,col,c.kind==='normal'?10:26,c.kind==='normal'?.85:1.5);
-if(state.combo===8||state.combo===15||state.combo===25){comboBang(state.combo);haptic(state.combo===25?[16,25,20]:12);}
-dmg(damage,c.kind!=='normal');if(state.mode!=='playing')return;
-if(state.mana>=state.cost){state.mana-=state.cost;state.fxBoost=.7;haptic([15,30,16]);
-showBanner('✦ BLOSSOM STORM');burst(2.5,2,7.2,'#ffa4df',45,1.7);sound('power');dmg(164*state.magic,true);}
-refresh();
+function creditPhysicalCounter(c){
+ const s=state;
+ if(s.mode!=='playing'||s.warning<=0||!s.threatPrimed||s.threatLane!==laneOfX(c.x))return;
+ s.threatFalls++;s.threatCount=Math.min(s.threatNeed,1+s.threatFalls);
+ trackGame('counter_fall',{kind:c.kind,lane:s.threatLane,progress:s.threatCount});
+ if(s.threatFalls>=s.threatFallsNeed)counterBoss();else showBanner('✦ PHYSICAL COUNTER '+s.threatCount+'/'+s.threatNeed);
 }
+function collect(c){
+ if(!state||state.mode!=='playing')return;
+ const s=state,lane=laneOfX(c.x);
+ // Credit only coins or rubble that physically crossed the front lip.
+ creditPhysicalCounter(c);
+ if(s.mode!=='playing')return;
+ if(c.kind==='rock'){
+  s.shake=Math.min(100,s.shake+12);
+  burst(c.x,.13,-5.5,'#8d9baf',13,.82);
+  if(s.wave===1){
+   s.golemCleared++;trackGame('rock_cleared',{count:s.golemCleared});
+   if(s.golemCleared>=2){
+    s.golemCleared=0;s.bossStun=Math.max(s.bossStun,2.4);
+    showBanner('⚙ GOLEM STAGGER · ROCKFALL COUNTER');
+    dmg(110,true);
+   }
+  }
+  return;
+ }
+ s.collected++;s.lastCollectTime=s.time;s.overdriveCharge=0;s.gold++;
+ if(s.collected%4===0)sound('collect');
+ s.ammo=Math.min(s.maxAmmo,s.ammo+1);s.shake=Math.min(100,s.shake+2.9);
+ s.combo=s.time-s.comboT<1.14?s.combo+1:1;s.comboT=s.time;
+ s.best=Math.max(s.best,s.combo);
+ trackGame('collect',{kind:c.kind,lane,combo:s.combo,height:+(c.releaseHeight||0).toFixed(2)});
+ if(s.combo===5){
+  s.mana=Math.min(s.cost*2,s.mana+2);showBanner('✦ 5 CHAIN · +MANA');
+ }
+ if(s.combo===9){s.storm++;showBanner('ϟ 9 CHAIN · FREE STORM');haptic(8);}
+ if(s.combo>=s.feverThreshold&&s.fever<=0&&s.feverCooldown<=0)activateFever();
+ if(s.combo===20&&s.fever>0){
+  for(const o of coins)if(!o.falling&&o.z>9.7&&o.y<.53)o.vz+=1.3;
+  s.fxBoost=.6;showBanner('✦ 20 CHAIN · CASCADE SURGE');
+  trackGame('cascade_surge',{count:s.combo});
+ }
+ if(s.collected%22===0){
+  s.bomb++;s.ammo=Math.min(s.maxAmmo,s.ammo+5);
+  showBanner('✦ TREASURE DROP · FREE BOMB');burst(c.x,.4,-5.7,'#ffe0a0',26,1.2);
+ }
+ let mult=1+Math.min(s.combo-1,25)*.03+(s.combo>=8?s.chainBoost:0);
+ if(lane===1)s.mana+=2;else s.mana++;
+ if(lane===2)s.shield=Math.min(60,s.shield+2);
+ const layers=clamp(Math.floor(((c.releaseHeight??.1)-.035)/.145),0,3);
+ let damage=(10+(lane===0?4:0))*s.blade*mult*(1+layers*.16);
+ if(layers>=2&&s.combo%5===0)damageFloat(c.x,.45,-5.7,`STACK ×${layers+1}`,'#ffe0a6',false);
+ if(s.wave===0&&s.jamTimer>0&&lane===s.jamLane){damage*=.6}
+ if(s.wave===2&&s.shieldLane===lane&&s.shieldTimer<=0&&c.kind!=='bomb'){
+  damage*=.25;
+  if(s.combo%4===0)showBanner('⛨ SHIELDED LANE · 측면을 공략해');
+ }
+ if(s.wave===5&&s.weakLane===lane&&s.enemy/s.maxEnemy<=.23&&s.combo>=5){
+  damage*=1.75;
+  if(s.combo%5===0)showBanner('✶ TITAN WEAK POINT ×1.75');
+ }
+ if(c.kind==='curse'){
+  if(s.combo>=5||c.cleansed){
+   s.mana=Math.min(s.cost*2,s.mana+4);
+   damage+=35*s.magic;showBanner('✦ CURSE PURIFIED BY CHAIN');
+   trackGame('cleanse_fall',{combo:s.combo});
+  }else{
+   s.mana=Math.max(0,s.mana-3);damage*=.35;
+   showBanner('☣ CURSE · -3 MANA');
+   trackGame('curse_penalty',{mana:s.mana});
+  }
+ }
+ if(c.kind==='bomb'){
+  haptic(18);addShock(c.x,.4,-5.4,'#ff9764',1.75);damage+=145*s.magic;
+  showBanner('✹ INFERNO BURST');burst(c.x,.55,-5.2,'#ff966b',42,2);
+  if(s.wave===2){s.shieldTimer=7;showBanner('✹ AEGIS SHIELD BREAK · 7s');trackGame('shield_break',{lane})}
+ }
+ if(c.kind==='storm'){
+  haptic(12);addShock(c.x,.4,-5.4,'#95e8ff',1.75);damage+=175*s.magic;
+  showBanner('ϟ TEMPEST STRIKE');burst(c.x,.65,-5.1,'#8bdeff',42,2);
+ }
+ const col=['#ffa67c','#95e9ff','#99e8b1'][lane];
+ burst(c.x,0,-5.65,col,c.kind==='normal'?10:26,c.kind==='normal'?.85:1.5);
+ if([5,9,13,20].includes(s.combo)){comboBang(s.combo);haptic(s.combo>=13?[16,25,20]:12);}
+ dmg(damage,c.kind!=='normal');if(s.mode!=='playing')return;
+ if(s.mana>=s.cost){
+  s.mana-=s.cost;s.fxBoost=.7;haptic([15,30,16]);
+  showBanner('✦ BLOSSOM STORM');burst(2.5,2,7.2,'#ffa4df',45,1.7);
+  sound('power');dmg(164*s.magic,true);
+ }
+ refresh();
+}
+
 function waveWin(){if(state.mode!=='playing')return;
 trackGame('wave_clear',{seconds:Math.round(state.time-state.waveStart),hp:Math.round(state.hp),remainingAmmo:state.ammo,enraged:state.enraged});
 sound('power');
@@ -1614,7 +1692,7 @@ state.mode='pause';$('modal').innerHTML=`<div class="overline">THE VAULT IS QUIE
 };
 root.querySelectorAll('[data-skill]').forEach(btn=>btn.addEventListener('click',()=>{
 if(state?.mode!=='playing')return;const kind=btn.dataset.skill;
-if(kind==='wall')wallSkill();else if(kind==='shake')shakeSkill();else{state.selected=kind;refresh()}
+if(kind==='wall')wallSkill();else if(kind==='shake')shakeSkill();else if(kind==='boost')triggerBoost();else{state.selected=kind;refresh()}
 }));
 function reAim(){
  const screenX=state.pointerScreenX;
