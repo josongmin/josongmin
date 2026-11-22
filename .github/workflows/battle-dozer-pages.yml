@@ -1,11 +1,6 @@
 name: Battle Dozer Mobile — GitHub Pages
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'games/battle-dozer/**'
-      - '.github/workflows/battle-dozer-pages.yml'
   workflow_dispatch:
 
 permissions:
