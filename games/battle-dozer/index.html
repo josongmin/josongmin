@@ -277,7 +277,9 @@ function makeBlade(){
  return b.done();
 }
 
-const meshes={box:makeBox(),bevel:makeBevelBox(),torus:makeTorus(),blade:makeBlade(),sphere:makeSphere(13,22),cyl:makeCylinder(28),coin:makeCoinMesh(),oct:makeOcta()};
+const meshes={box:makeBox(),bevel:makeBevelBox(),torus:makeTorus(),blade:makeBlade(),sphere:makeSphere(13,22),cyl:makeCylinder(28),coin:makeCoinMesh(),oct:makeOcta(),
+torso:makeLathe([[0,-.5],[.26,-.48],[.36,-.32],[.34,-.12],[.52,.16],[.49,.32],[.31,.47],[0,.5]],26),
+sleeve:makeLathe([[0,-.5],[.31,-.46],[.38,-.26],[.34,.23],[.22,.42],[0,.5]],22)};
 // GPU instance storage for all physics coins and their soft contact patches.
 function instanceBuffers(m){gl.bindVertexArray(m.va);m.instanceBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,m.instanceBuffer);gl.bufferData(gl.ARRAY_BUFFER,8192,gl.DYNAMIC_DRAW);gl.enableVertexAttribArray(2);gl.vertexAttribPointer(2,3,gl.FLOAT,false,12,0);gl.vertexAttribDivisor(2,1);m.metaBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,m.metaBuffer);gl.bufferData(gl.ARRAY_BUFFER,8192,gl.DYNAMIC_DRAW);gl.enableVertexAttribArray(3);gl.vertexAttribPointer(3,4,gl.FLOAT,false,16,0);gl.vertexAttribDivisor(3,1);
 m.angleBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,m.angleBuffer);gl.bufferData(gl.ARRAY_BUFFER,8192,gl.DYNAMIC_DRAW);gl.enableVertexAttribArray(4);gl.vertexAttribPointer(4,3,gl.FLOAT,false,12,0);gl.vertexAttribDivisor(4,1);
@@ -403,7 +405,7 @@ function drawFighter(t){
  // Overlapping cloth rather than a stack of rectangular blocks.
  fl('cyl',0,.86,.08,.59,1.18,.46,'#192c43',.36);
  fl('cyl',0,.74,.10,.85,.77,.72,'#efebe3',.36);
- fl('bevel',0,1.20,-.03,.71,.81,.51,'#f4eee1',.49);
+ fl('torso',0,1.20,-.03,1.38,.97,.98,'#f4eee1',.38);
  fl('bevel',0,1.20,-.36,.26,.75,.20,'#23364a',.49);
  fl('oct',0,1.27,-.50,.22,.37,.105,'#d7b477',.83);
  // Silk coat tails respond to attack impulse; cream, burgundy, ink-blue palette.
@@ -486,6 +488,70 @@ function drawEnemy(t){
  const gold=['#e6a58a','#c4e6e9','#d2b7fc','#e4b47c','#c4a1df','#ffe1a2'][w];
  const core=['#ff9d7d','#80d6f0','#a9a2ff','#ffad65','#bc94ff','#ffe095'][w];
  const f=(shape,x,y,z,sx,sy,sz,color,metal=.58,glow=0,ry=0,rz=0,rx=0)=>dynamic(shape,[cx+x*scale+stagger,y*scale+bob,cz+z*scale,sx*scale,sy*scale,sz*scale,ry,rz,rx],color,metal,glow);
+ // Humanoid first act; distinct armor families instead of scaled-down golem blocks.
+ if(w<3){
+  const skin=w===1?'#d7b6a1':'#ebc8ae';
+  const tunic=w===0?'#423747':w===1?'#42586a':'#43335c';
+  const trim=w===0?'#c86f62':w===1?'#b6d2dc':'#bd9ce8';
+  // layered greaves, hip wraps, boots and stylized tapered torso.
+  for(const side of [-1,1]){
+   f('sleeve',side*.32,.54,.10,.49,1.24,.49,'#202d3b',.38,0,0,side*.06);
+   f('bevel',side*.32,.02,-.14,.51,.32,.70,'#263548',.62);
+   f('oct',side*.32,.16,-.48,.19,.12,.13,trim,.87);
+  }
+  f('torso',0,1.52,.05,1.68,1.70,1.22,tunic,.38);
+  f('bevel',0,1.18,-.51,.83,.29,.16,trim,.73);
+  f('oct',0,1.37,-.68,.22,.29,.14,core,.26,.28);
+  f('torus',0,.96,.07,.53,.083,.53,'#d7ac77',.87);
+  for(const side of [-1,1]){
+   const raider=w===0;
+   f('sphere',side*.74,1.94,-.08,raider?.32:.42,.33,.40,raider?tunic:armor,.52);
+   f('sleeve',side*.87,1.37,-.12,.38,.90,.39,tunic,.37,0,0,side*-.17);
+   f('sphere',side*.95,.84,-.23,.20,.24,.22,skin,.19);
+   f('torus',side*.88,1.06,-.14,.15,.045,.15,trim,.69);
+  }
+  f('cyl',0,2.18,0,.18,.28,.18,skin,.12);
+  f('sphere',0,2.55,-.14,.45,.52,.39,skin,.17);
+  f('sphere',0,2.84,.03,.48,.29,.39,w===2?'#352a52':'#222b3d',.40);
+  for(const side of [-1,1]){
+   f('sphere',side*.29,2.64,-.16,.16,.32,.20,w===2?'#43335d':'#263449',.35);
+   f('sphere',side*.16,2.59,-.48,.040,.023,.018,'#26344d',.15);
+   f('sphere',side*.15,2.61,-.50,.012,.012,.01,'#e8fcff',.1,.25);
+  }
+  if(w===0){
+   // Assassin: lighter shoulders, hooked daggers and long red sash.
+   f('blade',-.29,.63,.48,.12,.88,.10,'#ce6959',.25,0,0,-.34,.10);
+   f('blade', .18,.63,.46,.12,.85,.10,'#ce6959',.25,0,0,.34,-.10);
+   for(const side of [-1,1]){
+    f('cyl',side*1.04,.86,-.46,.10,.40,.10,'#7d5844',.55,0,0,0,side*.48);
+    f('blade',side*1.20,1.49,-.48,.20,.76,.16,'#e5eff0',.88,.09,0,side*.28,side*.40);
+   }
+   f('blade',0,3.13,.07,.35,.38,.37,'#263146',.42);
+   f('torus',0,2.42,-.15,.40,.04,.40,'#b85d60',.21);
+  }else if(w===1){
+   // Knight: convex broad shield, polished rivets and a square-headed mace.
+   f('bevel',-1.19,1.38,-.91,.99,1.57,.26,'#8db8bf',.82);
+   f('bevel',-1.19,1.38,-1.04,.72,1.23,.10,'#345465',.63);
+   f('oct',-1.19,1.40,-1.13,.35,.46,.10,'#e4dcc0',.86);
+   f('cyl',1.13,1.29,-.40,.14,1.09,.14,'#a89e8f',.72,0,0,0,.12);
+   f('bevel',1.13,2.04,-.49,.78,.49,.55,'#d7d1ba',.92);
+   f('torus',0,2.17,-.34,.52,.065,.45,'#99e8f0',.25,.12,0,0,Math.PI/2);
+   f('oct',0,3.16,.10,.18,.30,.14,'#a1cbd4',.71);
+  }else{
+   // Mystic: long mantle, hood fin, floating arcane orbs and rune staff.
+   f('torso',0,.77,.26,2.20,1.42,1.65,'#5b497d',.28);
+   f('blade',0,3.12,.10,.40,.77,.40,'#4c395e',.36);
+   for(const side of [-1,1]){
+    f('blade',side*.66,1.16,.38,.24,1.27,.16,'#7b60a9',.30,0,0,side*.12);
+    f('oct',side*1.18,2.25+Math.sin(t*2+side)*.12,-.72,.26,.43,.26,'#a8a8ff',.18,.59);
+   }
+   f('cyl',1.14,1.42,-.40,.10,1.88,.10,'#c8a66b',.78);
+   f('oct',1.14,2.56,-.40,.32,.48,.32,'#a1baff',.20,.57);
+   f('torus',0,3.02,-.14,.66,.08,.66,'#a2b8ff',.16,.36,0,0,.16);
+  }
+  if(warn>0){f('oct',0,1.47,-.84,.21,.30,.14,'#ff8671',.22,.64);}
+  return;
+ }
  f('cyl',0,-.30,0,1.49,.26,1.25,'#a88b62',.89);
  f('torus',0,-.16,0,1.35,.08,1.24,'#d2ad70',.98);
  f('cyl',0,-.15,0,1.14,.10,1.10,'#26333e',.42);
@@ -497,7 +563,7 @@ function drawEnemy(t){
   f('box',s*.62,.18,-.93,.39,.10,.10,'#e5c089',.98);
  }
  // V-shaped massive silhouette, cutaway chest, inset glowing heart.
- f('bevel',0,1.96,.17,2.39,2.55,1.30,col,.62);
+ f('torso',0,1.96,.17,2.52,2.55,1.62,col,.62);
  f('bevel',0,2.32,-.53,1.95,1.85,.24,armor,.87);
  f('bevel',0,1.29,-.43,1.69,.43,.35,'#2f3a48',.79);
  for(const s of [-1,1]){
