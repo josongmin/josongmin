@@ -627,7 +627,7 @@ function sound(type='coin'){
 const abilities=[{name:'BLOSSOM EDGE',desc:'일반 코인 피해 +28%',fn:()=>state.blade*=1.28},{name:'TEMPEST SIGIL',desc:'번개·폭탄·궁극기 피해 +35%',fn:()=>state.magic*=1.35},{name:'GILDED WARD',desc:'HP +35 · 실드 +15',fn:()=>{state.hp=Math.min(100,state.hp+35);state.shield+=15}},{name:'ECHO OF GOLD',desc:'8콤보 이후 피해 +30%',fn:()=>state.chainBoost+=.3},{name:'DEEP POCKET',desc:'최대 코인 수 +20 · 즉시 +20',fn:()=>{state.maxAmmo+=20;state.ammo+=20}},{name:'QUICKENING',desc:'마나 필요량 12 → 10',fn:()=>state.cost=10},{name:'COUNTER FORGE',desc:'보스 공격 차단에 필요한 코인 -1',fn:()=>state.counterExpert=true},{name:'GEAR OVERDRIVE',desc:'푸셔 왕복 속도 +15%',fn:()=>state.pusherBoost*=1.15},{name:'FEVER ENGINE',desc:'피버 발동 기준 -3콤보 · 지속 +3초',fn:()=>{state.feverThreshold=Math.max(8,state.feverThreshold-3);state.feverDuration+=3}}];
 function initState(mode='playing'){
 coins.length=0;particles.length=0;numbers.length=0;slashes.length=0;rings.length=0;
-state={mode,time:0,stage:0,wave:0,hp:100,shield:8,mana:0,cost:12,ammo:60,maxAmmo:85,bomb:3,storm:3,selected:'normal',pusher:2.55,prevPusher:2.55,wall:0,wallCooldown:0,shake:0,regen:0,enemyTimer:13,warning:0,enemy:waveData[0].hp,maxEnemy:waveData[0].hp,attack:0,hit:0,hurt:0,combo:0,comboT:-10,best:0,gold:0,collected:0,lost:0,shots:0,lastCollectTime:0,blade:1,magic:1,chainBoost:0,aimX:0,fxBoost:0,cameraKick:0,impact:0,clink:0,pusherPhase:0,pusherBoost:1,threatLane:-1,threatNeed:0,threatCount:0,parries:0,missed:0,bossStun:0,fever:0,feverCooldown:0,feverThreshold:13,feverDuration:6,feverTimes:0};
+state={mode,time:0,stage:0,wave:0,hp:100,shield:8,mana:0,cost:12,ammo:60,maxAmmo:85,bomb:3,storm:3,selected:'normal',pusher:2.55,prevPusher:2.55,wall:0,wallCooldown:0,shake:0,regen:0,enemyTimer:13,warning:0,enemy:waveData[0].hp,maxEnemy:waveData[0].hp,attack:0,hit:0,hurt:0,combo:0,comboT:-10,best:0,gold:0,collected:0,lost:0,shots:0,lastCollectTime:0,blade:1,magic:1,chainBoost:0,aimX:0,fxBoost:0,cameraKick:0,impact:0,clink:0,pusherPhase:0,pusherBoost:1,threatLane:-1,threatNeed:0,threatCount:0,parries:0,missed:0,bossStun:0,fever:0,feverCooldown:0,feverThreshold:13,feverDuration:6,feverTimes:0,pointerScreenX:NaN,lastAimDisplayX:NaN};
 // Initialize a crowded three-dimensional field: first layer, overlapping second tier and clustered third tier.
 const base=[];
 for(let row=0;row<10;row++)for(let col=0;col<11;col++){
@@ -958,7 +958,7 @@ s.fever=Math.max(0,s.fever-dt);s.feverCooldown=Math.max(0,s.feverCooldown-dt);
 s.bossStun=Math.max(0,s.bossStun-dt);
 s.attack=Math.max(0,s.attack-dt*2.1);s.hit=Math.max(0,s.hit-dt*2.4);s.hurt=Math.max(0,s.hurt-dt*3);s.fxBoost=Math.max(0,s.fxBoost-dt*1.4);s.cameraKick=Math.max(0,s.cameraKick-dt*.60);s.impact=Math.max(0,s.impact-dt*1.7);
 s.regen+=dt;if(s.regen>(s.ammo<18?2.1:4.3)*(s.fever>0?.60:1)){s.regen=0;s.ammo=Math.min(s.maxAmmo,s.ammo+1)}
-if(press){hold+=dt;if(hold>.19){hold=0;shot()}}
+if(press){reAim();hold+=dt;if(hold>.19){hold=0;shot()}}
 if(s.warning>0){s.warning-=dt;if(s.warning<=0){landBossAttack();if(s.mode!=='playing')return}}
 else if(s.bossStun<=0){s.enemyTimer-=dt;if(s.enemyTimer<=0)beginThreat();}
 if(s.shots>18&&s.time-s.lastCollectTime>19&&s.time-(s.lastAssist||0)>15){
@@ -1116,19 +1116,24 @@ root.querySelectorAll('[data-skill]').forEach(btn=>btn.addEventListener('click',
 if(state?.mode!=='playing')return;const kind=btn.dataset.skill;
 if(kind==='wall')wallSkill();else if(kind==='shake')shakeSkill();else{state.selected=kind;refresh()}
 }));
-function aim(e){
- const box=canvas.getBoundingClientRect();
- const screenX=(e.clientX-box.left)/box.width*CW;
- const z=worldZ(Math.max(3.95,state.pusher+1.2));
- const y=.18;
+function reAim(){
+ const screenX=state.pointerScreenX;
+ if(!Number.isFinite(screenX))return;
+ const z=worldZ(Math.max(3.95,state.pusher+1.2)),y=.18;
  let lo=-4,hi=4;
  const increasing=project(4,y,z).x>project(-4,y,z).x;
  for(let i=0;i<15;i++){
   const mid=(lo+hi)*.5;
-  const p=project(mid,y,z).x;
-  if((p<screenX)===increasing)lo=mid;else hi=mid;
+  const px=project(mid,y,z).x;
+  if((px<screenX)===increasing)lo=mid;else hi=mid;
  }
  state.aimX=clamp((lo+hi)*.5,-4,4);
+ state.lastAimDisplayX=project(state.aimX,y,z).x;
+}
+function aim(e){
+ const box=canvas.getBoundingClientRect();
+ state.pointerScreenX=(e.clientX-box.left)/box.width*CW;
+ reAim();
 }
 canvas.addEventListener('pointerdown',e=>{
 if(state?.mode!=='playing')return;const r=canvas.getBoundingClientRect(),u=(e.clientY-r.top)/r.height;
