@@ -59,7 +59,14 @@ jobs:
                 const response=await page.goto(url+(lite?'?lite=1':''),{waitUntil:'domcontentloaded',timeout:60000});
                 const locator=page.locator('#start');
                 console.log('NAV_DIAGNOSTIC',JSON.stringify({lite,status:response?.status(),url:page.url(),title:await page.title(),startCount:await locator.count(),bodyStart:(await page.locator('body').innerText().catch(e=>'BODY_ERROR:'+e)).slice(0,250)}));
-                if(await locator.count()===0)throw new Error('Missing Start button');
+                if(await locator.count()===0){
+                  const open=page.getByText('Open the page',{exact:true}).first();
+                  console.log('CONSENT',JSON.stringify({lite,openCount:await open.count()}));
+                  if(await open.count())await open.click({timeout:15000});
+                  await page.waitForTimeout(900);
+                }
+                console.log('POST_CONSENT',JSON.stringify({lite,url:page.url(),startCount:await locator.count(),title:await page.title()}));
+                if(await locator.count()===0)throw new Error('Missing Start button after content notice');
                 await locator.click({timeout:15000});
                 await page.waitForTimeout(1800);
                 const before=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
