@@ -41,7 +41,20 @@
 #app:before{content:'';position:absolute;z-index:2;pointer-events:none;top:32%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#f8e6b718,transparent)}
 @media(max-width:380px){.top{padding-left:11px;padding-right:11px}.top .logo{font-size:17px}.subtitle{font-size:6px;letter-spacing:1.4px}.topright{gap:6px}.skills{gap:4px}.skill{height:61px}.bottom{padding-left:8px;padding-right:8px}}
 .mobile-mode{display:block;width:100%;border:0;color:#aa9e85;background:transparent;margin:12px auto 0;padding:5px 3px;font:600 11px system-ui;text-decoration:underline;text-underline-offset:4px;touch-action:manipulation}
-</style></head><body><div id="app"><canvas id="gl" aria-label="Battle Dozer 3D 게임"></canvas><canvas id="fx" aria-hidden="true"></canvas><div id="edge"></div><div class="top"><div class="topline"><div><div class="logo">BATTLE <em>DOZER</em></div><span class="subtitle">ECLIPSE FORGE · 3D ARCADE RPG</span></div><div class="topright"><span>✚ <b id="hp">100</b></span><span>⛨ <b id="shield">8</b></span><button class="iconbtn" id="view" aria-label="카메라 각도 전환" title="동전 적층 보기">◈</button><button class="iconbtn" id="pause" aria-label="일시정지">Ⅱ</button></div></div><div class="levelstrip"><span id="stage">CHAPTER I · THE VAULT</span><span class="index" id="clock">00:00</span></div><div class="bossbar"><i id="enemybar"></i></div><div class="bossinfo"><span id="enemyname">DUSK SENTINEL</span><span id="enemyhp">520 / 520</span></div></div><div id="perf">60 FPS · STACK SIM</div><div id="callout" class="callout">BONUS CHAIN!</div><div id="burst" class="comboburst">15 CHAIN!</div><div class="bottom"><div class="ledger"><div class="coincount"><span class="mini-coin">✦</span><strong id="ammo">60</strong></div><div class="energy"><div class="energyhead"><span>✦ MYSTIC ENERGY</span><b id="mana">0/12</b></div><div class="bar"><i id="energybar"></i></div></div><div class="chain">COMBO<b id="combo">×1</b></div></div><div class="skills"><button class="skill active" data-skill="normal"><span class="sigil">◉</span><label>COIN</label><small>DROP</small></button><button class="skill" data-skill="bomb"><span class="sigil">✹</span><label>BOMB</label><small id="bombs">×3</small></button><button class="skill" data-skill="storm"><span class="sigil">ϟ</span><label>STORM</label><small id="storms">×3</small></button><button class="skill" data-skill="wall"><span class="sigil">⛨</span><label>WALL</label><small id="wall">READY</small></button><button class="skill" data-skill="shake"><span class="sigil">〰</span><label>SHAKE</label><small id="shake">0%</small></button></div><div class="help">TOUCH TO DROP · HOLD TO STREAM · ◈ ORBIT CAMERA</div></div><div class="overlay" id="overlay"><div class="modal" id="modal"><div class="overline">AN ORIGINAL COIN-PUSHER ACTION RPG</div><div class="emblem">✦</div><h1>BATTLE<br><em>DOZER</em></h1><div class="modepill">ECLIPSE FORGE · THE CLOCKWORK VAULT</div><p>동전을 겹쳐 쌓고, 마지막 한 번의 밀기로<br>수호자의 코어를 파괴하라.</p><button class="cta" id="start">전투 시작 &nbsp; ✧</button><button class="mobile-mode" id="mobileMode" type="button">모바일 호환 렌더링 (2D)로 실행</button><div class="keyboard">TAP · STACK · PUSH · SHATTER</div></div></div></div><script>
+
+/* V5: Readable lane-counterplay and fever presentation. */
+.threat{position:absolute;z-index:4;top:calc(109px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(90%,370px);padding:8px 12px 9px;background:linear-gradient(115deg,#502e31f2,#231e2cf2);border:1px solid #ef916d99;border-radius:10px;box-shadow:0 7px 26px #0009,0 0 22px #ed74502b;pointer-events:none;display:flex;align-items:center;gap:9px;justify-content:space-between}
+.threat[hidden],.feverChip[hidden]{display:none}
+.threat .threatMain{min-width:0;flex:1}
+.threat .threatTop{display:flex;align-items:center;justify-content:space-between;gap:7px;font-size:11px;font-weight:900;color:#ffcfb2;letter-spacing:.4px}
+.threat .threatSmall{font-size:9px;font-weight:650;color:#f2c8b6;margin-top:3px;white-space:nowrap}
+.threatMeter{margin-top:6px;height:4px;border-radius:8px;overflow:hidden;background:#f4c9aa2b}
+.threatMeter>i{display:block;background:linear-gradient(90deg,#f6a87a,#ffdb9c);height:100%;transition:width .1s}
+.threatCountdown{font:900 21px Georgia,serif;color:#ffe6cc;min-width:40px;text-align:right;font-variant-numeric:tabular-nums}
+.feverChip{position:absolute;z-index:4;top:calc(108px + env(safe-area-inset-top));right:12px;pointer-events:none;border:1px solid #f6cc7d9c;border-radius:50px;background:#30251edb;box-shadow:0 0 20px #ffc66a45;color:#ffe3a2;padding:7px 11px;font:900 11px system-ui;letter-spacing:1px}
+.threat:not([hidden]) ~ .feverChip{top:calc(171px + env(safe-area-inset-top))}
+@media(max-width:380px){.threat{top:calc(106px + env(safe-area-inset-top));padding:7px 9px}.threat .threatSmall{font-size:8px}}
+</style></head><body><div id="app"><canvas id="gl" aria-label="Battle Dozer 3D 게임"></canvas><canvas id="fx" aria-hidden="true"></canvas><div id="edge"></div><div class="top"><div class="topline"><div><div class="logo">BATTLE <em>DOZER</em></div><span class="subtitle">ECLIPSE FORGE · 3D ARCADE RPG</span></div><div class="topright"><span>✚ <b id="hp">100</b></span><span>⛨ <b id="shield">8</b></span><button class="iconbtn" id="view" aria-label="카메라 각도 전환" title="동전 적층 보기">◈</button><button class="iconbtn" id="pause" aria-label="일시정지">Ⅱ</button></div></div><div class="levelstrip"><span id="stage">CHAPTER I · THE VAULT</span><span class="index" id="clock">00:00</span></div><div class="bossbar"><i id="enemybar"></i></div><div class="bossinfo"><span id="enemyname">DUSK SENTINEL</span><span id="enemyhp">520 / 520</span></div></div><div id="threat" class="threat" hidden><div class="threatMain"><div class="threatTop"><span id="threatLabel">⚠ COUNTER LEFT</span><span id="threatProgress">0/2</span></div><div class="threatSmall">표시된 레인에 코인을 투입해 반격</div><div class="threatMeter"><i id="threatBar" style="width:0%"></i></div></div><span id="threatCountdown" class="threatCountdown">6.0</span></div><div id="feverChip" class="feverChip" hidden>✦ FEVER 0.0s</div><div id="perf">60 FPS · STACK SIM</div><div id="callout" class="callout">BONUS CHAIN!</div><div id="burst" class="comboburst">15 CHAIN!</div><div class="bottom"><div class="ledger"><div class="coincount"><span class="mini-coin">✦</span><strong id="ammo">60</strong></div><div class="energy"><div class="energyhead"><span>✦ MYSTIC ENERGY</span><b id="mana">0/12</b></div><div class="bar"><i id="energybar"></i></div></div><div class="chain">COMBO<b id="combo">×1</b></div></div><div class="skills"><button class="skill active" data-skill="normal"><span class="sigil">◉</span><label>COIN</label><small>DROP</small></button><button class="skill" data-skill="bomb"><span class="sigil">✹</span><label>BOMB</label><small id="bombs">×3</small></button><button class="skill" data-skill="storm"><span class="sigil">ϟ</span><label>STORM</label><small id="storms">×3</small></button><button class="skill" data-skill="wall"><span class="sigil">⛨</span><label>WALL</label><small id="wall">READY</small></button><button class="skill" data-skill="shake"><span class="sigil">〰</span><label>SHAKE</label><small id="shake">0%</small></button></div><div class="help">DROP TO ATTACK · MATCH WARNING LANE TO COUNTER</div></div><div class="overlay" id="overlay"><div class="modal" id="modal"><div class="overline">AN ORIGINAL COIN-PUSHER ACTION RPG</div><div class="emblem">✦</div><h1>BATTLE<br><em>DOZER</em></h1><div class="modepill">ECLIPSE FORGE · THE CLOCKWORK VAULT</div><p>동전을 겹쳐 쌓고, 마지막 한 번의 밀기로<br>수호자의 코어를 파괴하라.<br>⚠ 예고 레인 방어 · 13콤보 FEVER 발동</p><button class="cta" id="start">전투 시작 &nbsp; ✧</button><button class="mobile-mode" id="mobileMode" type="button">모바일 호환 렌더링 (2D)로 실행</button><div class="keyboard">TAP · STACK · PUSH · SHATTER</div></div></div></div><script>
 (()=>{'use strict';
 const root=document.getElementById('app');let canvas=document.getElementById('gl');const fxCanvas=document.getElementById('fx');
 const prefer2D=/(?:\?|&)lite=1(?:&|$)/.test(location.search);
@@ -611,10 +624,10 @@ function sound(type='coin'){
   }
  }catch(e){}
 }
-const abilities=[{name:'BLOSSOM EDGE',desc:'일반 코인 피해 +28%',fn:()=>state.blade*=1.28},{name:'TEMPEST SIGIL',desc:'번개·폭탄·궁극기 피해 +35%',fn:()=>state.magic*=1.35},{name:'GILDED WARD',desc:'HP +35 · 실드 +15',fn:()=>{state.hp=Math.min(100,state.hp+35);state.shield+=15}},{name:'ECHO OF GOLD',desc:'8콤보 이후 피해 +30%',fn:()=>state.chainBoost+=.3},{name:'DEEP POCKET',desc:'최대 코인 수 +20 · 즉시 +20',fn:()=>{state.maxAmmo+=20;state.ammo+=20}},{name:'QUICKENING',desc:'마나 필요량 12 → 10',fn:()=>state.cost=10}];
+const abilities=[{name:'BLOSSOM EDGE',desc:'일반 코인 피해 +28%',fn:()=>state.blade*=1.28},{name:'TEMPEST SIGIL',desc:'번개·폭탄·궁극기 피해 +35%',fn:()=>state.magic*=1.35},{name:'GILDED WARD',desc:'HP +35 · 실드 +15',fn:()=>{state.hp=Math.min(100,state.hp+35);state.shield+=15}},{name:'ECHO OF GOLD',desc:'8콤보 이후 피해 +30%',fn:()=>state.chainBoost+=.3},{name:'DEEP POCKET',desc:'최대 코인 수 +20 · 즉시 +20',fn:()=>{state.maxAmmo+=20;state.ammo+=20}},{name:'QUICKENING',desc:'마나 필요량 12 → 10',fn:()=>state.cost=10},{name:'COUNTER FORGE',desc:'보스 공격 차단에 필요한 코인 -1',fn:()=>state.counterExpert=true},{name:'GEAR OVERDRIVE',desc:'푸셔 왕복 속도 +15%',fn:()=>state.pusherBoost*=1.15},{name:'FEVER ENGINE',desc:'피버 발동 기준 -3콤보 · 지속 +3초',fn:()=>{state.feverThreshold=Math.max(8,state.feverThreshold-3);state.feverDuration+=3}}];
 function initState(mode='playing'){
 coins.length=0;particles.length=0;numbers.length=0;slashes.length=0;rings.length=0;
-state={mode,time:0,stage:0,wave:0,hp:100,shield:8,mana:0,cost:12,ammo:60,maxAmmo:85,bomb:3,storm:3,selected:'normal',pusher:2.55,prevPusher:2.55,wall:0,wallCooldown:0,shake:0,regen:0,enemyTimer:13,warning:0,enemy:waveData[0].hp,maxEnemy:waveData[0].hp,attack:0,hit:0,hurt:0,combo:0,comboT:-10,best:0,gold:0,collected:0,lost:0,shots:0,lastCollectTime:0,blade:1,magic:1,chainBoost:0,aimX:0,fxBoost:0,cameraKick:0,impact:0,clink:0};
+state={mode,time:0,stage:0,wave:0,hp:100,shield:8,mana:0,cost:12,ammo:60,maxAmmo:85,bomb:3,storm:3,selected:'normal',pusher:2.55,prevPusher:2.55,wall:0,wallCooldown:0,shake:0,regen:0,enemyTimer:13,warning:0,enemy:waveData[0].hp,maxEnemy:waveData[0].hp,attack:0,hit:0,hurt:0,combo:0,comboT:-10,best:0,gold:0,collected:0,lost:0,shots:0,lastCollectTime:0,blade:1,magic:1,chainBoost:0,aimX:0,fxBoost:0,cameraKick:0,impact:0,clink:0,pusherPhase:0,pusherBoost:1,threatLane:-1,threatNeed:0,threatCount:0,parries:0,missed:0,bossStun:0,fever:0,feverCooldown:0,feverThreshold:13,feverDuration:6,feverTimes:0};
 // Initialize a crowded three-dimensional field: first layer, overlapping second tier and clustered third tier.
 const base=[];
 for(let row=0;row<10;row++)for(let col=0;col<11;col++){
@@ -659,6 +672,64 @@ if(particles.length>260)break;const a=rand(0,T),v=rand(25,190)*pow;
 particles.push({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-20,age:0,life:rand(.26,.65),r:rand(1.4,3.2)*pow,color:col});
 }}
 function damageFloat(x,y,z,str,col='#ffdf99',big=false){const p=project(x,y,z);numbers.push({x:p.x+rand(-12,12),y:p.y,str,age:0,life:big?1.6:1.02,size:big?30:19,col});if(numbers.length>45)numbers.shift();}
+
+const LANE_NAMES=['왼쪽 · STRIKE','중앙 · ARCANE','오른쪽 · GUARD'];
+function laneOfX(x){return x<-1.45?0:x>1.45?2:1}
+function beginThreat(){
+ if(!state||state.mode!=='playing')return;
+ const s=state;
+ s.threatLane=(s.wave+s.parries+Math.floor(s.time/11))%3;
+ s.threatCount=0;s.threatNeed=Math.max(1,(s.wave===2?3:2)-(s.counterExpert?1:0));
+ s.warning=6.0;s.enemyTimer=s.wave===2?11:13;
+ showBanner('⚠ '+LANE_NAMES[s.threatLane]+' · 반격 준비');
+ refresh();
+}
+function counterBoss(){
+ const s=state;if(s.mode!=='playing'||s.warning<=0)return;
+ s.warning=0;s.threatLane=-1;s.threatCount=0;s.enemyTimer=s.wave===2?11:13;
+ s.bossStun=Math.max(s.bossStun,3.0);s.parries++;
+ s.ammo=Math.min(s.maxAmmo,s.ammo+(s.counterExpert?9:6));s.shake=Math.min(100,s.shake+16);
+ if(s.parries%2===0)s.storm++;
+ s.cameraKick=Math.max(s.cameraKick,.20);s.fxBoost=.65;
+ addShock(-2.75,2.3,8.0,'#8de9ff',2.1);
+ burst(-2.72,2.5,8.0,'#8ce7ff',38,1.6);
+ showBanner('✦ PERFECT COUNTER · BOSS STUN');
+ comboBang('BREAK');sound('power');haptic([18,36,20]);
+ dmg(110+s.wave*70,true);
+ refresh();
+}
+function activateFever(){
+ const s=state;
+ if(s.mode!=='playing'||s.fever>0||s.feverCooldown>0)return;
+ s.fever=s.feverDuration;s.feverCooldown=24;s.feverTimes++;
+ s.ammo=Math.min(s.maxAmmo,s.ammo+9);
+ for(const c of coins)if(!c.falling&&c.z>9.6&&c.y<.50)c.vz+=.65;
+ s.fxBoost=.5;s.cameraKick=Math.max(s.cameraKick,.13);
+ burst(0,.4,worldZ(9.5),'#ffdf87',36,1.15);
+ comboBang('FEVER');showBanner('✦ GOLD FEVER · PUSHER BOOST');
+ sound('power');haptic([10,25,10]);
+}
+function landBossAttack(){
+ const s=state;if(s.mode!=='playing')return;
+ const partial=s.threatCount;s.warning=0;s.threatLane=-1;s.threatCount=0;
+ s.enemyTimer=s.wave===2?10.5:12.5;
+ if(s.wall>0){
+   s.wall=0;s.shield=Math.min(60,s.shield+5);s.shake=Math.min(100,s.shake+18);
+   showBanner('⛨ AEGIS BLOCK · PERFECT DEFENSE');
+   addShock(3.4,2,8.1,'#8feaca',1.6);sound('power');haptic(15);refresh();return;
+ }
+ const base=waveData[s.wave].damage;
+ const incoming=Math.max(4,base-partial*4);
+ const absorbed=Math.min(s.shield,incoming);
+ s.shield-=absorbed;s.hp-=incoming-absorbed;s.hurt=.65;s.fxBoost=.44;s.missed++;
+ damageFloat(3.4,3.4,8.1,'-'+Math.round(incoming-absorbed),'#ff9b8f',true);
+ addShock(3.4,1.8,8.1,'#ff796d',1.3);
+ burst(3.4,2.5,8.1,'#ff8a7c',23,1.35);
+ if(s.wave>=1)for(let i=0;i<(s.wave===2?3:2);i++)if(coins.length<185)coins.push(makeCoin('rock',rand(-3.6,3.6),rand(5.5,8.5)));
+ showBanner(s.wave===2?'GOLEM SLAM!':'GUARD BROKEN!');sound('bomb');haptic(18);
+ if(s.hp<=0)showResult(false);else refresh();
+}
+
 function shot(){
 if(state.mode!=='playing'||state.ammo<=0||coins.length>=248)return;
 let kind=state.selected;
@@ -676,14 +747,20 @@ if(d<1.9){a.vz+=3.0*(1-d/2);a.vx+=dx*(1.2-d*.45)}}
 burst(c.x,.5,worldZ(c.z),'#ff9a57',32,1.15);sound('bomb');}
 else if(kind==='storm'){burst(c.x,.5,worldZ(c.z),'#8ae8ff',29,1.05);sound('storm')}
 else if(state.shots%3===0)sound('coin');
-state.lastShot=state.time;state.selected='normal';refresh();
+state.lastShot=state.time;state.selected='normal';
+if(state.warning>0&&state.threatLane===laneOfX(c.x)){
+ state.threatCount++;
+ if(state.threatCount>=state.threatNeed)counterBoss();
+ else {showBanner('PARRY '+state.threatCount+'/'+state.threatNeed);sound('collect');}
+}
+refresh();
 }
 function wallSkill(){if(state.mode!=='playing'||state.wallCooldown>0)return;state.wall=6;state.wallCooldown=24;showBanner('AEGIS WALL · 보호막 전개');sound('power');refresh();}
 function shakeSkill(){if(state.mode!=='playing'||state.shake<100)return;state.shake=0;
 for(const c of coins){if(c.falling)continue;c.vz+=rand(.65,2.5);c.vx+=rand(-.8,.8);c.vy+=rand(.5,1.5);c.wx+=rand(-2,2);c.wz+=rand(-2,2)}
 burst(0,.2,-2.5,'#dbafff',56,1.6);showBanner('VAULT SHOCKWAVE!');sound('bomb');refresh();}
 function dmg(n,special=false){if(state.mode!=='playing')return;
-const val=Math.max(1,Math.round(n));state.enemy=Math.max(0,state.enemy-val);state.attack=.64;state.hit=.34;state.fxBoost=Math.max(state.fxBoost,.15);
+const val=Math.max(1,Math.round(n*(state.bossStun>0?1.35:1)*(state.fever>0?1.20:1)));state.enemy=Math.max(0,state.enemy-val);state.attack=.64;state.hit=.34;state.fxBoost=Math.max(state.fxBoost,.15);
 if(special || state.combo%5===0)damageFloat(-2.75,3.2,7.5,(special?'✦ ':'')+val,special?'#9deaff':'#ffe5a9',special);
 if(special||state.combo%4===0)burst(-2.75,2.4,7.7,special?'#94eeff':'#ffdca2',special?22:7,special?1.45:.8);
 if(special||state.combo%8===0)sound(special?'storm':'hit');
@@ -696,6 +773,8 @@ function collect(c){if(c.kind==='rock'){state.shake=Math.min(100,state.shake+8);
 state.collected++;state.lastCollectTime=state.time;state.gold++;if(state.collected%4===0)sound('collect');state.ammo=Math.min(state.maxAmmo,state.ammo+1);state.shake=Math.min(100,state.shake+2.9);
 const lane=c.x<-1.45?0:c.x>1.45?2:1;
 state.combo=state.time-state.comboT<.82?state.combo+1:1;state.comboT=state.time;state.best=Math.max(state.best,state.combo);
+if(state.combo>=state.feverThreshold && state.fever<=0 && state.feverCooldown<=0)activateFever();
+if(state.collected%22===0){state.bomb++;state.ammo=Math.min(state.maxAmmo,state.ammo+5);showBanner('✦ TREASURE DROP · FREE BOMB');burst(c.x,.4,-5.7,'#ffe0a0',26,1.2);}
 let mult=1+Math.min(state.combo-1,25)*.03+(state.combo>=8?state.chainBoost:0);
 if(lane===1)state.mana+=2;else state.mana++;if(lane===2)state.shield=Math.min(60,state.shield+2);
 // The height of the physical stack at the lip now matters in combat.
@@ -712,7 +791,7 @@ showBanner('✦ BLOSSOM STORM');burst(2.5,2,7.2,'#ffa4df',45,1.7);sound('power')
 refresh();
 }
 function waveWin(){if(state.mode!=='playing')return;
-sound('power');state.gold+=75;state.combo=0;
+sound('power');state.gold+=75;state.combo=0;state.warning=0;state.threatLane=-1;state.bossStun=0;
 if(state.wave===2){state.mode='victory';showResult(true);return}
 state.mode='upgrade';let pool=[...abilities].sort(()=>Math.random()-.5).slice(0,3);
 $('modal').innerHTML=`<div class="overline">CHAPTER ${state.wave+1} CONQUERED</div><div class="emblem">✦</div><h2>BLESSING</h2><p>다음 전투를 위한 축복을 골라.</p>${pool.map((a,i)=>`<button class="choice" data-choose="${i}"><b>✦ ${a.name}</b><small>${a.desc}</small></button>`).join('')}`;
@@ -727,7 +806,7 @@ function showResult(won){
 state.mode=won?'victory':'defeat';
 if(won)for(let k=0;k<6;k++)burst(rand(-3,3),rand(.1,2),worldZ(rand(5,11)),'#ffda87',28,1.5);
 try{const prev=+localStorage.getItem('battle_dozer_premium_wins')||0;if(won)localStorage.setItem('battle_dozer_premium_wins',String(prev+1))}catch{}
-$('modal').innerHTML=`<div class="overline">${won?'VAULT CLEARED · LEGENDS RISE':'BATTLE ENDED · THE VAULT REMAINS'}</div><div class="emblem">${won?'✦':'⚔'}</div><h2>${won?'VICTORY':'DEFEAT'}</h2><p>${won?'마침내 금고의 수호자를 쓰러뜨렸다.':'동전을 정교하게 밀어 다음엔 돌파해 보자.'}<br>최고 콤보 <b>${state.best}</b> · 코인 회수 <b>${state.collected}</b> · 골드 <b>${state.gold}</b><br>3D 코인 적층과 보드 물리로 전투 진행</p><button class="cta" id="restart">다시 도전하기 ✦</button>`;
+$('modal').innerHTML=`<div class="overline">${won?'VAULT CLEARED · LEGENDS RISE':'BATTLE ENDED · THE VAULT REMAINS'}</div><div class="emblem">${won?'✦':'⚔'}</div><h2>${won?'VICTORY':'DEFEAT'}</h2><p>${won?'마침내 금고의 수호자를 쓰러뜨렸다.':'동전을 정교하게 밀어 다음엔 돌파해 보자.'}<br>최고 콤보 <b>${state.best}</b> · 카운터 <b>${state.parries}</b> · 피버 <b>${state.feverTimes}</b><br>코인 회수 <b>${state.collected}</b> · 골드 <b>${state.gold}</b><br>3D 코인 적층과 보드 물리로 전투 진행</p><button class="cta" id="restart">다시 도전하기 ✦</button>`;
 $('overlay').hidden=false;$('restart').onclick=start;
 }
 function refresh(){if(!state)return;
@@ -743,6 +822,16 @@ $('combo').textContent=`×${Math.max(1,state.combo)}`;
 $('bombs').textContent=`×${state.bomb}`;$('storms').textContent=`×${state.storm}`;
 $('wall').textContent=state.wall>0?`${Math.ceil(state.wall)}s`:state.wallCooldown>0?`${Math.ceil(state.wallCooldown)}s`:'READY';
 $('shake').textContent=`${Math.floor(state.shake)}%`;
+const warned=state.mode==='playing'&&state.warning>0&&state.threatLane>=0;
+$('threat').hidden=!warned;
+if(warned){
+ $('threatLabel').textContent='⚠ '+LANE_NAMES[state.threatLane];
+ $('threatProgress').textContent=state.threatCount+'/'+state.threatNeed;
+ $('threatBar').style.width=(100*state.threatCount/state.threatNeed)+'%';
+ $('threatCountdown').textContent=state.warning.toFixed(1);
+}
+$('feverChip').hidden=state.fever<=0||state.mode!=='playing';
+if(state.fever>0)$('feverChip').textContent='✦ FEVER '+state.fever.toFixed(1)+'s';
 root.querySelectorAll('[data-skill]').forEach(el=>{const s=el.dataset.skill;el.classList.toggle('active',state.selected===s);el.disabled=(s==='bomb'&&state.bomb<=0)||(s==='storm'&&state.storm<=0)||(s==='wall'&&state.wallCooldown>0)||(s==='shake'&&state.shake<100)});
 }
 // 3-axis coin dynamics with actual gravity, separate vertical/horizontal contacts and angular wobble.
@@ -860,18 +949,18 @@ for(let i=coins.length-1;i>=0;i--){
 }
 function step(dt){if(!state)return;
 const s=state;if(s.mode!=='playing'&&s.mode!=='demo')return;
-s.time+=dt;s.prevPusher=s.pusher;s.pusher=2.53+2.24*(.5-.5*Math.cos(s.time*T/1.72));
+s.time+=dt;s.prevPusher=s.pusher;
+s.pusherPhase+=dt*T/1.72*(s.pusherBoost||1)*(s.fever>0?1.37:1);
+s.pusher=2.53+2.24*(.5-.5*Math.cos(s.pusherPhase));
 if(s.mode==='demo')return;
 s.wall=Math.max(0,s.wall-dt);s.wallCooldown=Math.max(0,s.wallCooldown-dt);
+s.fever=Math.max(0,s.fever-dt);s.feverCooldown=Math.max(0,s.feverCooldown-dt);
+s.bossStun=Math.max(0,s.bossStun-dt);
 s.attack=Math.max(0,s.attack-dt*2.1);s.hit=Math.max(0,s.hit-dt*2.4);s.hurt=Math.max(0,s.hurt-dt*3);s.fxBoost=Math.max(0,s.fxBoost-dt*1.4);s.cameraKick=Math.max(0,s.cameraKick-dt*.60);s.impact=Math.max(0,s.impact-dt*1.7);
-s.regen+=dt;if(s.regen>(s.ammo<18?2.1:4.3)){s.regen=0;s.ammo=Math.min(s.maxAmmo,s.ammo+1)}
+s.regen+=dt;if(s.regen>(s.ammo<18?2.1:4.3)*(s.fever>0?.60:1)){s.regen=0;s.ammo=Math.min(s.maxAmmo,s.ammo+1)}
 if(press){hold+=dt;if(hold>.19){hold=0;shot()}}
-if(s.warning>0){s.warning-=dt;if(s.warning<=0){
-let dmg=waveData[s.wave].damage,absorbed=Math.min(s.shield,dmg);s.shield-=absorbed;s.hp-=dmg-absorbed;s.hurt=.65;s.fxBoost=.45;
-damageFloat(3.4,3.4,8.1,`-${Math.round(dmg-absorbed)}`,'#ff9b8f',true);addShock(3.4,1.8,8.1,'#ff796d',1.3);burst(3.4,2.5,8.1,'#ff8a7c',23,1.35);
-if(s.wave>=1){for(let i=0;i<(s.wave===2?3:2);i++)if(coins.length<180){let c=makeCoin('rock',rand(-3.6,3.6),rand(5.5,8.5));coins.push(c)}}
-if(s.wave===2)showBanner('GOLEM SLAM!');sound('bomb');if(s.hp<=0){showResult(false);return}
-}}else{s.enemyTimer-=dt;if(s.enemyTimer<=0){s.warning=1.8;s.enemyTimer=s.wave===2?10.5:12.5;showBanner('⚠ INCOMING STRIKE');}}
+if(s.warning>0){s.warning-=dt;if(s.warning<=0){landBossAttack();if(s.mode!=='playing')return}}
+else if(s.bossStun<=0){s.enemyTimer-=dt;if(s.enemyTimer<=0)beginThreat();}
 if(s.shots>18&&s.time-s.lastCollectTime>19&&s.time-(s.lastAssist||0)>15){
  s.lastAssist=s.time;
  // Gentle actuator cycle only; the player still has to drop coins to cash out.
@@ -968,6 +1057,19 @@ for(let i=0;i<22;i++){let x=(i*101.31+Math.sin(t*.27+i*2)*9)%CW,y=(i*93.71+t*(5+
 ctx.save();ctx.globalAlpha=.20+.16*Math.sin(t*.9+i);ctx.fillStyle=i%4?'#f8d6a1':'#a9eaff';ctx.beginPath();ctx.arc(x,y,i%5===0?1.8:.9,0,T);ctx.fill();ctx.restore();}
 
 if(state?.mode==='playing'){
+
+if(state.warning>0&&state.threatLane>=0){
+ const bounds=[[-4.1,-1.45],[-1.45,1.45],[1.45,4.1]][state.threatLane],near=worldZ(11.7),far=worldZ(5.8);
+ const a=project(bounds[0],.18,far),b=project(bounds[1],.18,far),c=project(bounds[1],.18,near),d=project(bounds[0],.18,near);
+ ctx.save();ctx.globalAlpha=.48+.16*Math.sin(t*13);ctx.fillStyle='rgba(255,107,76,.19)';
+ ctx.strokeStyle='#ff9f78';ctx.shadowColor='#ff8564';ctx.shadowBlur=17;ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.lineTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.closePath();ctx.fill();ctx.setLineDash([7,6]);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+}
+if(state.fever>0){
+ const p=project(0,.12,worldZ(8.6)),rad=CW*.55;
+ const fire=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,rad);fire.addColorStop(0,'rgba(255,194,75,.13)');fire.addColorStop(1,'rgba(255,194,75,0)');
+ ctx.fillStyle=fire;ctx.fillRect(p.x-rad,p.y-rad,rad*2,rad*2);
+}
 const p=project(state.aimX,.18,worldZ(state.pusher+1.2));
 ctx.save();ctx.globalAlpha=.36+.24*Math.sin(t*5);ctx.strokeStyle=state.selected==='bomb'?'#ff9a68':state.selected==='storm'?'#92eeff':'#fff2ae';ctx.shadowBlur=13;ctx.shadowColor=ctx.strokeStyle;
 ctx.beginPath();ctx.ellipse(p.x,p.y,13,6,0,0,T);ctx.lineWidth=2;ctx.stroke();ctx.restore();
@@ -1040,7 +1142,7 @@ window.__battleDozerDebug={get state(){return state},get coins(){return coins},s
 setView:i=>{cameraMode=clamp(i|0,0,2)},
 metrics:()=>({engine:'Eclipse Forge v4',count:coins.length,maxHeight:Math.max(0,...coins.map(c=>c.y)),tipped:coins.filter(c=>Math.abs(c.rx)>.12||Math.abs(c.rz)>.12).length,
 stacked:coins.filter(c=>coins.some(o=>o!==c&&o.y<c.y-.095&&o.y>c.y-.24&&Math.hypot(o.x-c.x,o.z-c.z)<.48)).length,
-falling:coins.filter(c=>c.falling).length, collected:state?.collected||0,world3d:!!gl}),
+falling:coins.filter(c=>c.falling).length, collected:state?.collected||0,world3d:!!gl,parries:state?.parries||0,threatLane:state?.threatLane??-1,threatCount:state?.threatCount||0,fever:state?.fever||0,feverTimes:state?.feverTimes||0}),
 render:()=>draw3d(performance.now()/1000)};
 })();
 </script></body></html>
