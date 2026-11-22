@@ -674,7 +674,7 @@ particles.push({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-20,age:0,life:rand
 function damageFloat(x,y,z,str,col='#ffdf99',big=false){const p=project(x,y,z);numbers.push({x:p.x+rand(-12,12),y:p.y,str,age:0,life:big?1.6:1.02,size:big?30:19,col});if(numbers.length>45)numbers.shift();}
 
 const LANE_NAMES=['왼쪽 · STRIKE','중앙 · ARCANE','오른쪽 · GUARD'];
-function laneOfX(x){return x<-1.45?0:x>1.45?2:1}
+function laneOfX(x){return x>1.45?0:x<-1.45?2:1}
 function beginThreat(){
  if(!state||state.mode!=='playing')return;
  const s=state;
@@ -771,7 +771,7 @@ if(state.enemy<=0)waveWin();else refresh();
 }
 function collect(c){if(c.kind==='rock'){state.shake=Math.min(100,state.shake+8);burst(c.x,.13,-5.5,'#8d9baf',8,.7);return}
 state.collected++;state.lastCollectTime=state.time;state.gold++;if(state.collected%4===0)sound('collect');state.ammo=Math.min(state.maxAmmo,state.ammo+1);state.shake=Math.min(100,state.shake+2.9);
-const lane=c.x<-1.45?0:c.x>1.45?2:1;
+const lane=c.x>1.45?0:c.x<-1.45?2:1;
 state.combo=state.time-state.comboT<.82?state.combo+1:1;state.comboT=state.time;state.best=Math.max(state.best,state.combo);
 if(state.combo>=state.feverThreshold && state.fever<=0 && state.feverCooldown<=0)activateFever();
 if(state.collected%22===0){state.bomb++;state.ammo=Math.min(state.maxAmmo,state.ammo+5);showBanner('✦ TREASURE DROP · FREE BOMB');burst(c.x,.4,-5.7,'#ffe0a0',26,1.2);}
@@ -1059,7 +1059,7 @@ ctx.save();ctx.globalAlpha=.20+.16*Math.sin(t*.9+i);ctx.fillStyle=i%4?'#f8d6a1':
 if(state?.mode==='playing'){
 
 if(state.warning>0&&state.threatLane>=0){
- const bounds=[[-4.1,-1.45],[-1.45,1.45],[1.45,4.1]][state.threatLane],near=worldZ(11.7),far=worldZ(5.8);
+ const bounds=[[1.45,4.1],[-1.45,1.45],[-4.1,-1.45]][state.threatLane],near=worldZ(11.7),far=worldZ(5.8);
  const a=project(bounds[0],.18,far),b=project(bounds[1],.18,far),c=project(bounds[1],.18,near),d=project(bounds[0],.18,near);
  ctx.save();ctx.globalAlpha=.48+.16*Math.sin(t*13);ctx.fillStyle='rgba(255,107,76,.19)';
  ctx.strokeStyle='#ff9f78';ctx.shadowColor='#ff8564';ctx.shadowBlur=17;ctx.lineWidth=2;
@@ -1116,8 +1116,20 @@ root.querySelectorAll('[data-skill]').forEach(btn=>btn.addEventListener('click',
 if(state?.mode!=='playing')return;const kind=btn.dataset.skill;
 if(kind==='wall')wallSkill();else if(kind==='shake')shakeSkill();else{state.selected=kind;refresh()}
 }));
-function aim(e){const box=canvas.getBoundingClientRect();const x=(e.clientX-box.left)/box.width;
-state.aimX=clamp((x-.5)*10.1,-4,4);}
+function aim(e){
+ const box=canvas.getBoundingClientRect();
+ const screenX=(e.clientX-box.left)/box.width*CW;
+ const z=worldZ(Math.max(3.95,state.pusher+1.2));
+ const y=.18;
+ let lo=-4,hi=4;
+ const increasing=project(4,y,z).x>project(-4,y,z).x;
+ for(let i=0;i<15;i++){
+  const mid=(lo+hi)*.5;
+  const p=project(mid,y,z).x;
+  if((p<screenX)===increasing)lo=mid;else hi=mid;
+ }
+ state.aimX=clamp((lo+hi)*.5,-4,4);
+}
 canvas.addEventListener('pointerdown',e=>{
 if(state?.mode!=='playing')return;const r=canvas.getBoundingClientRect(),u=(e.clientY-r.top)/r.height;
 if(u<.28||u>.81)return;
@@ -1139,7 +1151,7 @@ if(gl){try{const url=new URL(location.href);url.searchParams.set('lite','1');loc
 requestAnimationFrame(frame);}
 initState('demo');requestAnimationFrame(frame);
 window.__battleDozerDebug={get state(){return state},get coins(){return coins},start,drop:shot,physics,step,collect,deal:dmg,
-setView:i=>{cameraMode=clamp(i|0,0,2)},
+setView:i=>{cameraMode=clamp(i|0,0,2)},projectPoint:(x,y,z)=>project(x,y,z),worldZ,
 metrics:()=>({engine:'Eclipse Forge v4',count:coins.length,maxHeight:Math.max(0,...coins.map(c=>c.y)),tipped:coins.filter(c=>Math.abs(c.rx)>.12||Math.abs(c.rz)>.12).length,
 stacked:coins.filter(c=>coins.some(o=>o!==c&&o.y<c.y-.095&&o.y>c.y-.24&&Math.hypot(o.x-c.x,o.z-c.z)<.48)).length,
 falling:coins.filter(c=>c.falling).length, collected:state?.collected||0,world3d:!!gl,parries:state?.parries||0,threatLane:state?.threatLane??-1,threatCount:state?.threatCount||0,fever:state?.fever||0,feverTimes:state?.feverTimes||0}),
