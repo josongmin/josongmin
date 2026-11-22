@@ -1015,58 +1015,117 @@ function damageFloat(x,y,z,str,col='#ffdf99',big=false){const p=project(x,y,z);n
 
 const LANE_NAMES=['왼쪽 · STRIKE','중앙 · ARCANE','오른쪽 · GUARD'];
 function laneOfX(x){return x>1.45?0:x<-1.45?2:1}
+function currentMechanicHint(){
+ if(!state||state.mode!=='playing')return '';
+ const s=state,w=waveData[s.wave];
+ if(s.enraged)return '⚠ ENRAGED · '+w.name+' 공격 간격 단축';
+ if(w.class==='RAIDER'&&s.jamTimer>0)return '⚔ RAIDED LANE · '+LANE_NAMES[s.jamLane]+' 피해 -40% · '+Math.ceil(s.jamTimer)+'s';
+ if(w.class==='GOLEM')return '⚙ IRON GOLEM · 낙석을 전면으로 떨어뜨려 그로기 · '+s.golemCleared+'/2';
+ if(w.class==='SHIELD')return s.shieldTimer>0?'⛨ SHIELD BROKEN · 약점 노출 '+Math.ceil(s.shieldTimer)+'s':'⛨ AEGIS SHIELD · '+LANE_NAMES[s.shieldLane]+' 공격 -75%';
+ if(w.class==='COLOSSUS')return s.tiltTimer>0?'◈ BOARD TILT · '+(s.tiltSign>0?'RIGHT':'LEFT')+' · 낙하 연쇄 기회':'◈ COLOSSUS · 보드 기울기 예고';
+ if(w.class==='MAGE')return '☣ CURSED COINS · 폭탄/번개로 정화해 추가 마나 획득';
+ if(w.class==='TITAN'&&s.enemy<s.maxEnemy*.23)return '✦ EXPOSED CORE · '+LANE_NAMES[s.weakLane]+' + COMBO 5 = x1.75';
+ return '';
+}
+function spawnHazard(kind,n){
+ if(!state||state.mode!=='playing')return;
+ let count=0;
+ for(let i=0;i<n&&coins.length<218;i++){
+  const c=makeCoin(kind,rand(-3.5,3.5),rand(6.2,9.3));
+  c.y=1.0+rand(.1,.25);c.vy=-.3;c.vx=rand(-.2,.2);c.vz=rand(-.3,.4);
+  coins.push(c);count++;
+ }
+ trackGame('spawn_hazard',{kind,n:count});
+}
+function cleanCurses(x,z,range=2.1){
+ let count=0;
+ for(const c of coins){
+  if(c.kind!=='curse'||c.falling||Math.hypot(c.x-x,c.z-z)>range)continue;
+  c.kind='normal';c.cleansed=true;c.vz+=1.8;c.vy+=.23;count++;
+  burst(c.x,.7,worldZ(c.z),'#e1bcff',12,.75);
+ }
+ if(count){state.mana=Math.min(state.cost*2,state.mana+count);state.shake=Math.min(100,state.shake+count*6);trackGame('cleanse',{count});showBanner('✦ CURSE PURIFIED ×'+count)}
+ return count;
+}
+function triggerBoost(){
+ if(!state||state.mode!=='playing'||!state.overdriveReady)return false;
+ const s=state;s.overdriveReady=false;s.overdriveCharge=0;s.lastBoost=s.time;s.pushBurst=2.5;
+ s.fxBoost=.45;s.cameraKick=Math.max(s.cameraKick,.15);
+ for(const c of coins)if(!c.falling&&c.z>9.2&&c.y<.56){
+   c.vz+=1.35+Math.max(0,c.z-10)*.38;c.vy+=.10;
+ }
+ burst(0,.35,worldZ(10),'#ffca77',39,1.1);
+ showBanner('⤊ MANUAL POWER PUSH');sound('power');haptic([13,25,13]);
+ trackGame('boost',{count:coins.filter(c=>c.z>9.2&&!c.falling).length});refresh();return true;
+}
 function beginThreat(){
  if(!state||state.mode!=='playing')return;
- const s=state;
+ const s=state,w=waveData[s.wave],d=DIFFICULTIES[s.difficulty];
  s.threatLane=(s.wave+s.parries+Math.floor(s.time/11))%3;
- s.threatCount=0;s.threatNeed=Math.max(1,(waveData[s.wave].boss?3:2)-(s.counterExpert?1:0));
- s.warning=waveData[s.wave].boss?6.2:6.0;s.enemyTimer=waveData[s.wave].boss?11:13;
- showBanner('⚠ '+LANE_NAMES[s.threatLane]+' · 반격 준비');
- refresh();
+ s.threatPrimed=false;s.threatFalls=0;
+ s.threatFallsNeed=Math.max(1,1+(w.boss&&s.difficulty==='nightmare'?1:0)-(s.counterExpert?1:0));
+ s.threatCount=0;s.threatNeed=1+s.threatFallsNeed;
+ s.warning=d.telegraph+(w.boss?.65:0)+(s.counterExpert?.5:0);
+ s.enemyTimer=(w.boss?11:13)*(s.enraged?.82:1);
+ trackGame('warning',{lane:s.threatLane,need:s.threatNeed,seconds:s.warning});
+ showBanner('⚠ '+LANE_NAMES[s.threatLane]+' · 투입 후 낙하시켜 반격');refresh();
 }
 function counterBoss(){
- const s=state;if(s.mode!=='playing'||s.warning<=0)return;
- s.warning=0;s.threatLane=-1;s.threatCount=0;s.enemyTimer=waveData[s.wave].boss?11:13;
- s.bossStun=Math.max(s.bossStun,3.0);s.parries++;
+ const s=state;if(s.mode!=='playing'||s.warning<=0||!s.threatPrimed||s.threatFalls<s.threatFallsNeed)return;
+ const lane=s.threatLane;
+ s.warning=0;s.threatLane=-1;s.threatCount=0;s.threatPrimed=false;s.threatFalls=0;
+ s.enemyTimer=(waveData[s.wave].boss?11:13)*(s.enraged?.82:1);
+ s.bossStun=Math.max(s.bossStun,waveData[s.wave].boss?3.5:2.7);s.parries++;
  s.ammo=Math.min(s.maxAmmo,s.ammo+(s.counterExpert?9:6));s.shake=Math.min(100,s.shake+16);
  if(s.parries%2===0)s.storm++;
  s.cameraKick=Math.max(s.cameraKick,.20);s.fxBoost=.65;
- addShock(-2.75,2.3,8.0,'#8de9ff',2.1);
- burst(-2.72,2.5,8.0,'#8ce7ff',38,1.6);
- showBanner('✦ PERFECT COUNTER · BOSS STUN');
+ addShock(-2.75,2.3,8.0,'#8de9ff',2.1);burst(-2.72,2.5,8.0,'#8ce7ff',38,1.6);
+ trackGame('counter',{lane,kind:'physical_fall'});
+ showBanner('✦ PERFECT PHYSICAL COUNTER · STUN');
  comboBang('BREAK');sound('power');haptic([18,36,20]);
- dmg(110+s.wave*70,true);
- refresh();
+ dmg(90+s.wave*25,true);refresh();
 }
 function activateFever(){
- const s=state;
- if(s.mode!=='playing'||s.fever>0||s.feverCooldown>0)return;
- s.fever=s.feverDuration;s.feverCooldown=24;s.feverTimes++;
- s.ammo=Math.min(s.maxAmmo,s.ammo+9);
- for(const c of coins)if(!c.falling&&c.z>9.6&&c.y<.50)c.vz+=.65;
+ const s=state;if(s.mode!=='playing'||s.fever>0||s.feverCooldown>0)return;
+ s.fever=s.feverDuration;s.feverCooldown=22;s.feverTimes++;
+ s.ammo=Math.min(s.maxAmmo,s.ammo+8);
+ for(const c of coins)if(!c.falling&&c.z>9.7&&c.y<.50)c.vz+=.75;
  s.fxBoost=.5;s.cameraKick=Math.max(s.cameraKick,.13);
  burst(0,.4,worldZ(9.5),'#ffdf87',36,1.15);
  comboBang('FEVER');showBanner('✦ GOLD FEVER · PUSHER BOOST');
- sound('power');haptic([10,25,10]);
+ trackGame('fever',{combo:s.combo});sound('power');haptic([10,25,10]);
 }
 function landBossAttack(){
  const s=state;if(s.mode!=='playing')return;
- const partial=s.threatCount;s.warning=0;s.threatLane=-1;s.threatCount=0;
- s.enemyTimer=waveData[s.wave].boss?10.5:12.5;
+ const lane=s.threatLane,partial=s.threatCount,w=waveData[s.wave],d=DIFFICULTIES[s.difficulty];
+ s.warning=0;s.threatLane=-1;s.threatCount=0;s.threatPrimed=false;s.threatFalls=0;
+ s.enemyTimer=(w.boss?10.5:12.5)*(s.enraged?.82:1);
  if(s.wall>0){
    s.wall=0;s.shield=Math.min(60,s.shield+5);s.shake=Math.min(100,s.shake+18);
-   showBanner('⛨ AEGIS BLOCK · PERFECT DEFENSE');
-   addShock(3.4,2,8.1,'#8feaca',1.6);sound('power');haptic(15);refresh();return;
+   showBanner('⛨ AEGIS BLOCK · PERFECT DEFENSE');addShock(3.4,2,8.1,'#8feaca',1.6);
+   trackGame('perfect_wall',{lane});sound('power');haptic(15);refresh();return;
  }
- const base=waveData[s.wave].damage;
- const incoming=Math.max(4,base-partial*4);
+ const incoming=Math.max(3,Math.round(w.damage*d.damage*(s.enraged?1.18:1))-(partial>=1?4:0));
  const absorbed=Math.min(s.shield,incoming);
  s.shield-=absorbed;s.hp-=incoming-absorbed;s.hurt=.65;s.fxBoost=.44;s.missed++;
  damageFloat(3.4,3.4,8.1,'-'+Math.round(incoming-absorbed),'#ff9b8f',true);
- addShock(3.4,1.8,8.1,'#ff796d',1.3);
- burst(3.4,2.5,8.1,'#ff8a7c',23,1.35);
- if(s.wave>=1)for(let i=0;i<(waveData[s.wave].boss?3:1);i++)if(coins.length<185)coins.push(makeCoin('rock',rand(-3.6,3.6),rand(5.5,8.5)));
- showBanner(waveData[s.wave].boss?'BOSS SLAM!':'GUARD BROKEN!');sound('bomb');haptic(18);
+ addShock(3.4,1.8,8.1,'#ff796d',1.3);burst(3.4,2.5,8.1,'#ff8a7c',23,1.35);
+ trackGame('hit',{lane,damage:incoming-absorbed,shieldAbsorbed:absorbed});
+ if(w.class==='RAIDER'){
+   s.jamLane=lane;s.jamTimer=7;
+   showBanner('⚔ RAID · 레인 보상 강탈');
+ }else if(w.class==='GOLEM'){
+   spawnHazard('rock',d.rocks+1);showBanner('⚙ ROCKFALL · 낙석 제거');
+ }else if(w.class==='SHIELD'){
+   s.shieldLane=(s.shieldLane+1)%3;showBanner('⛨ SHIELD ROTATED');
+ }else if(w.class==='COLOSSUS'){
+   s.tiltTimer=4.5;s.tiltSign=-s.tiltSign;showBanner('◈ TILT · 코인을 이용해 역전');
+ }else if(w.class==='MAGE'){
+   spawnHazard('curse',d.rocks+2);showBanner('☣ CURSED COINS · 정화 필요');
+ }else if(w.class==='TITAN'){
+   spawnHazard('rock',d.rocks);s.tiltTimer=2.5;s.tiltSign=-s.tiltSign;showBanner('✶ ECLIPSE COMBO ATTACK');
+ }
+ sound('bomb');haptic(18);
  if(s.hp<=0)showResult(false);else refresh();
 }
 
