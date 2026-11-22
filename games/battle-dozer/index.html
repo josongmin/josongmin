@@ -90,8 +90,27 @@
 @media(max-width:360px){.logo{font-size:17px}.subtitle{letter-spacing:1.1px;font-size:6.5px}.codexbtn{font-size:8px;padding:4px 6px}.mintCard img{max-width:106px}.topright{gap:6px}.iconbtn{width:27px;height:27px}}
 @media(max-height:720px){.top{padding-bottom:9px}.levelstrip{margin-top:6px}.bottom{padding-top:11px}.skill{height:57px}.help{font-size:7px;padding-top:4px}}
 @media(prefers-reduced-motion:reduce){.skill:active,.cta:active{transform:none}#armory *{scroll-behavior:auto}}
-</style></head><body><div id="app"><canvas id="gl" aria-label="Battle Dozer 3D 게임"></canvas><canvas id="fx" aria-hidden="true"></canvas><div id="edge"></div><div class="top"><div class="topline"><div><div class="logo">BATTLE <em>DOZER</em></div><span class="subtitle">ARTISAN FORGE · 3D ARCADE RPG</span></div><div class="topright"><span>✚ <b id="hp">100</b></span><span>⛨ <b id="shield">8</b></span><button class="iconbtn" id="view" aria-label="카메라 각도 전환" title="동전 적층 보기">◈</button><button class="iconbtn" id="pause" aria-label="일시정지">Ⅱ</button></div></div><div class="levelstrip"><span id="stage">CHAPTER I · THE VAULT</span><span class="index" id="clock">00:00</span></div><div class="bossbar"><i id="enemybar"></i></div><div class="bossinfo"><span id="enemyname">DUSK SENTINEL</span><span id="enemyhp">520 / 520</span></div></div><div id="threat" class="threat" hidden><div class="threatMain"><div class="threatTop"><span id="threatLabel">⚠ COUNTER LEFT</span><span id="threatProgress">0/2</span></div><div class="threatSmall">표시된 레인에 코인을 투입해 반격</div><div class="threatMeter"><i id="threatBar" style="width:0%"></i></div></div><span id="threatCountdown" class="threatCountdown">6.0</span></div><div id="feverChip" class="feverChip" hidden>✦ FEVER 0.0s</div><div id="perf">60 FPS · STACK SIM</div><div id="callout" class="callout">BONUS CHAIN!</div><div id="burst" class="comboburst">15 CHAIN!</div><div class="bottom"><div class="ledger"><div class="coincount"><span class="mini-coin">✦</span><strong id="ammo">60</strong></div><div class="energy"><div class="energyhead"><span>✦ MYSTIC ENERGY</span><b id="mana">0/12</b></div><div class="bar"><i id="energybar"></i></div></div><div class="chain">COMBO<b id="combo">×1</b></div></div><div class="skills"><button class="skill active" data-skill="normal"><span class="sigil">◉</span><label>COIN</label><small>DROP</small></button><button class="skill" data-skill="bomb"><span class="sigil">✹</span><label>BOMB</label><small id="bombs">×3</small></button><button class="skill" data-skill="storm"><span class="sigil">ϟ</span><label>STORM</label><small id="storms">×3</small></button><button class="skill" data-skill="wall"><span class="sigil">⛨</span><label>WALL</label><small id="wall">READY</small></button><button class="skill" data-skill="shake"><span class="sigil">〰</span><label>SHAKE</label><small id="shake">0%</small></button></div><div class="help"><button id="codex" class="codexbtn" type="button">◉ COLLECTION</button><span>DROP · COUNTER THE RED LANE · GOLD FEVER</span></div></div><div class="overlay" id="armory" hidden><section class="modal armoryPanel" aria-label="코인과 적 컬렉션" role="dialog"><div class="codexTop"><div><div class="overline">ECLIPSE MINT · BATTLE ARCHIVE</div><h2>THE COLLECTION</h2><p>확대해서 금화 각인과 전투 장비를 살펴봐.</p></div><button id="codexClose" class="codexClose" aria-label="컬렉션 닫기" type="button">×</button></div><div class="codexTitle">01 · PREMIUM MINTED COINS</div><div id="coinGallery" class="mintGrid"></div><div class="codexTitle">02 · ENEMIES & BOSS ARCHIVE</div><div id="foeGallery" class="foeGrid"></div></section></div>
-<div class="overlay" id="overlay"><div class="modal" id="modal"><div class="overline">AN ORIGINAL COIN-PUSHER ACTION RPG</div><div class="emblem">✦</div><h1>BATTLE<br><em>DOZER</em></h1><div class="modepill">ARTISAN FORGE · THE CLOCKWORK VAULT</div><p>동전을 겹쳐 쌓고, 마지막 한 번의 밀기로<br>수호자의 코어를 파괴하라.<br>⚠ 예고 레인 방어 · 13콤보 FEVER 발동</p><button class="cta" id="start">전투 시작 &nbsp; ✧</button><button class="mobile-mode" id="mobileMode" type="button">모바일 호환 렌더링 (2D)로 실행</button><div class="keyboard">TAP · STACK · PUSH · SHATTER</div></div></div></div><script>
+
+/* Balance Forge v2 mobile modes and explicit state readouts */
+.skills{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.skills .skill{padding:7px 1px 5px;min-height:63px;height:65px}
+.skills .skill label{font-size:8px}
+.skills .skill small{font-size:8px}
+.skills .skill .sigil{font-size:22px}
+.skill[data-skill="boost"] .sigil{color:#f7e8a4}
+.skill[data-skill="boost"]:not(:disabled){border-color:#ffda86;box-shadow:0 0 16px #ffb65a50}
+.stageEffect{position:absolute;z-index:4;left:12px;right:12px;bottom:calc(189px + env(safe-area-inset-bottom));pointer-events:none;border:1px solid #a8c9e077;border-radius:8px;background:#111b2bdf;color:#fff0c8;text-align:center;font:800 10px system-ui;letter-spacing:.25px;padding:7px 9px;text-shadow:0 1px 4px #000;box-shadow:0 8px 16px #0005}
+.stageEffect[hidden]{display:none}
+.difficultyBox{padding:11px 10px 9px;margin:10px 0 5px;border:1px solid #b58c5b66;border-radius:10px;background:#182333b8}
+.difficultyBox>b{font:800 10px system-ui;letter-spacing:1.7px;color:#f5d399}
+.difficultyChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0 7px}
+.difficultyOption{font:800 9px system-ui;letter-spacing:.3px;color:#e3d5be;border:1px solid #a78c6177;border-radius:7px;background:#273342;padding:10px 2px}
+.difficultyOption.active{background:linear-gradient(140deg,#a7844d,#59422d);border-color:#ffe2ad;color:#fff6df;box-shadow:inset 0 1px #fff7cf55}
+.difficultyOption:disabled{opacity:.40;filter:grayscale(.55)}
+.difficultyBox small{color:#aeaa9e;font-size:9px}
+@media(max-width:380px){.skills{gap:3px}.skills .skill{min-height:60px;height:61px}.skills .skill label{font-size:7px}.skills .skill small{font-size:7px}.stageEffect{font-size:9px}}
+</style></head><body><div id="app"><canvas id="gl" aria-label="Battle Dozer 3D 게임"></canvas><canvas id="fx" aria-hidden="true"></canvas><div id="edge"></div><div class="top"><div class="topline"><div><div class="logo">BATTLE <em>DOZER</em></div><span class="subtitle">ARTISAN FORGE · 3D ARCADE RPG</span></div><div class="topright"><span>✚ <b id="hp">100</b></span><span>⛨ <b id="shield">8</b></span><button class="iconbtn" id="view" aria-label="카메라 각도 전환" title="동전 적층 보기">◈</button><button class="iconbtn" id="pause" aria-label="일시정지">Ⅱ</button></div></div><div class="levelstrip"><span id="stage">CHAPTER I · THE VAULT</span><span class="index" id="clock">00:00</span></div><div class="bossbar"><i id="enemybar"></i></div><div class="bossinfo"><span id="enemyname">DUSK SENTINEL</span><span id="enemyhp">520 / 520</span></div></div><div id="threat" class="threat" hidden><div class="threatMain"><div class="threatTop"><span id="threatLabel">⚠ COUNTER LEFT</span><span id="threatProgress">0/2</span></div><div class="threatSmall">① 경고 레인 투입 → ② 실제 전면 낙하로 반격</div><div class="threatMeter"><i id="threatBar" style="width:0%"></i></div></div><span id="threatCountdown" class="threatCountdown">6.0</span></div><div id="feverChip" class="feverChip" hidden>✦ FEVER 0.0s</div><div id="stageEffect" class="stageEffect" hidden></div><div id="perf">60 FPS · STACK SIM</div><div id="callout" class="callout">BONUS CHAIN!</div><div id="burst" class="comboburst">15 CHAIN!</div><div class="bottom"><div class="ledger"><div class="coincount"><span class="mini-coin">✦</span><strong id="ammo">60</strong></div><div class="energy"><div class="energyhead"><span>✦ MYSTIC ENERGY</span><b id="mana">0/12</b></div><div class="bar"><i id="energybar"></i></div></div><div class="chain">COMBO<b id="combo">×1</b></div></div><div class="skills"><button class="skill active" data-skill="normal"><span class="sigil">◉</span><label>COIN</label><small>DROP</small></button><button class="skill" data-skill="bomb"><span class="sigil">✹</span><label>BOMB</label><small id="bombs">×3</small></button><button class="skill" data-skill="storm"><span class="sigil">ϟ</span><label>STORM</label><small id="storms">×3</small></button><button class="skill" data-skill="wall"><span class="sigil">⛨</span><label>WALL</label><small id="wall">READY</small></button><button class="skill" data-skill="shake"><span class="sigil">〰</span><label>SHAKE</label><small id="shake">0%</small></button><button class="skill" data-skill="boost"><span class="sigil">⤊</span><label>PUSH</label><small id="boost">10s</small></button></div><div class="help"><button id="codex" class="codexbtn" type="button">◉ COLLECTION</button><span>DROP · COUNTER THE RED LANE · GOLD FEVER</span></div></div><div class="overlay" id="armory" hidden><section class="modal armoryPanel" aria-label="코인과 적 컬렉션" role="dialog"><div class="codexTop"><div><div class="overline">ECLIPSE MINT · BATTLE ARCHIVE</div><h2>THE COLLECTION</h2><p>확대해서 금화 각인과 전투 장비를 살펴봐.</p></div><button id="codexClose" class="codexClose" aria-label="컬렉션 닫기" type="button">×</button></div><div class="codexTitle">01 · PREMIUM MINTED COINS</div><div id="coinGallery" class="mintGrid"></div><div class="codexTitle">02 · ENEMIES & BOSS ARCHIVE</div><div id="foeGallery" class="foeGrid"></div></section></div>
+<div class="overlay" id="overlay"><div class="modal" id="modal"><div class="overline">AN ORIGINAL COIN-PUSHER ACTION RPG</div><div class="emblem">✦</div><h1>BATTLE<br><em>DOZER</em></h1><div class="modepill">BALANCE FORGE · PHYSICAL COUNTERPLAY</div><p>동전을 겹쳐 쌓고, 마지막 한 번의 밀기로<br>수호자의 코어를 파괴하라.<br>⚠ 예고 레인 방어 · 13콤보 FEVER 발동</p><button class="cta" id="start">전투 시작 &nbsp; ✧</button><button class="mobile-mode" id="mobileMode" type="button">모바일 호환 렌더링 (2D)로 실행</button><div class="keyboard">TAP · STACK · PUSH · SHATTER</div></div></div></div><script>
 (()=>{'use strict';
 const root=document.getElementById('app');let canvas=document.getElementById('gl');const fxCanvas=document.getElementById('fx');
 const prefer2D=/(?:\?|&)lite=1(?:&|$)/.test(location.search);
@@ -967,6 +986,7 @@ for(const c of center.slice(0,13)){
  coins.push(a);
 }
 
+if(mode==='playing')trackGame('run_start',{seed:state.seed});
 refresh();
 }
 let nextCoinId=0;
@@ -1111,28 +1131,48 @@ showBanner('✦ BLOSSOM STORM');burst(2.5,2,7.2,'#ffa4df',45,1.7);sound('power')
 refresh();
 }
 function waveWin(){if(state.mode!=='playing')return;
-sound('power');state.gold+=waveData[state.wave].boss?135:65;state.combo=0;state.warning=0;state.threatLane=-1;state.bossStun=0;
+trackGame('wave_clear',{seconds:Math.round(state.time-state.waveStart),hp:Math.round(state.hp),remainingAmmo:state.ammo,enraged:state.enraged});
+sound('power');
+const clearSeconds=state.time-state.waveStart;
+const swift=clearSeconds<=waveData[state.wave].goal;
+const reward=Math.round((waveData[state.wave].boss?135:65)*(swift?1.30:1)*difficultySettings().reward);
+state.gold+=reward;state.combo=0;state.warning=0;state.threatLane=-1;state.bossStun=0;
 if(state.wave===waveData.length-1){state.mode='victory';showResult(true);return}
 state.mode='upgrade';let pool=[...abilities].sort(()=>seededFloat()-.5).slice(0,3);
 $('modal').innerHTML=`<div class="overline">CHAPTER ${state.wave+1} CONQUERED</div><div class="emblem">✦</div><h2>BLESSING</h2><p>다음 전투를 위한 축복을 골라.</p>${pool.map((a,i)=>`<button class="choice" data-choose="${i}"><b>✦ ${a.name}</b><small>${a.desc}</small></button>`).join('')}`;
 $('overlay').hidden=false;
 $('modal').querySelectorAll('[data-choose]').forEach(el=>el.onclick=()=>{
-pool[+el.dataset.choose].fn();state.wave++;state.enemy=waveData[state.wave].hp;state.maxEnemy=state.enemy;
+const choice=pool[+el.dataset.choose];
+choice.fn();trackGame('upgrade',{name:choice.name});
+state.wave++;state.enemy=stageEnemyHp(state.wave);state.maxEnemy=state.enemy;
+state.waveStart=state.time;state.stageTime=waveData[state.wave].time;state.enraged=false;
+state.shieldLane=state.wave===2?1:-1;state.shieldTimer=0;state.jamLane=-1;state.jamTimer=0;
+state.boardTilt=0;state.tiltTimer=0;state.weakLane=-1;state.weakTimer=0;state.curseTimer=11;
+state.overdriveReady=false;state.overdriveCharge=0;state.pushBurst=0;
+state.threatPrimed=false;state.threatFalls=0;state.golemCleared=0;
 state.hp=Math.min(100,state.hp+(waveData[state.wave].boss?20:15));state.shield+=8;state.ammo=Math.min(state.maxAmmo,state.ammo+28);state.bomb++;state.storm++;
-state.enemyTimer=12;state.warning=0;state.threatCount=0;state.threatLane=-1;state.mode='playing';$('overlay').hidden=true;showBanner((waveData[state.wave].boss?'⚔ BOSS AWAKENS · ':'NEXT ENCOUNTER · ')+waveData[state.wave].name);refresh();
+state.enemyTimer=12;state.warning=0;state.threatCount=0;state.threatLane=-1;state.mode='playing';trackGame('wave_start',{name:waveData[state.wave].name});$('overlay').hidden=true;showBanner((waveData[state.wave].boss?'⚔ BOSS AWAKENS · ':'NEXT ENCOUNTER · ')+waveData[state.wave].name);refresh();
 });
 }
 function showResult(won){
 state.mode=won?'victory':'defeat';
 if(won)for(let k=0;k<6;k++)burst(rand(-3,3),rand(.1,2),worldZ(rand(5,11)),'#ffda87',28,1.5);
+trackGame('run_end',{won,elapsed:Math.round(state.time),coins:state.collected});
+saveRunSummary(won);
+if(won){
+ const next=Math.min(2,DIFFICULTY_ORDER.indexOf(state.difficulty)+1);
+ if(next>unlockedDifficulty){unlockedDifficulty=next;try{localStorage.setItem('bd_difficulty_unlock',String(unlockedDifficulty))}catch{}}
+}
 try{const prev=+localStorage.getItem('battle_dozer_premium_wins')||0;if(won)localStorage.setItem('battle_dozer_premium_wins',String(prev+1))}catch{}
-$('modal').innerHTML=`<div class="overline">${won?'VAULT CLEARED · LEGENDS RISE':'BATTLE ENDED · THE VAULT REMAINS'}</div><div class="emblem">${won?'✦':'⚔'}</div><h2>${won?'VICTORY':'DEFEAT'}</h2><p>${won?'마침내 금고의 수호자를 쓰러뜨렸다.':'동전을 정교하게 밀어 다음엔 돌파해 보자.'}<br>최고 콤보 <b>${state.best}</b> · 카운터 <b>${state.parries}</b> · 피버 <b>${state.feverTimes}</b><br>코인 회수 <b>${state.collected}</b> · 골드 <b>${state.gold}</b><br>3D 코인 적층과 보드 물리로 전투 진행</p><button class="cta" id="restart">다시 도전하기 ✦</button>`;
-$('overlay').hidden=false;$('restart').onclick=start;
+$('modal').innerHTML=`<div class="overline">${won?'VAULT CLEARED · LEGENDS RISE':'BATTLE ENDED · THE VAULT REMAINS'}</div><div class="emblem">${won?'✦':'⚔'}</div><h2>${won?'VICTORY':'DEFEAT'}</h2><p>${won?'마침내 금고의 수호자를 쓰러뜨렸다.':'동전을 정교하게 밀어 다음엔 돌파해 보자.'}<br>최고 콤보 <b>${state.best}</b> · 카운터 <b>${state.parries}</b> · 피버 <b>${state.feverTimes}</b><br>코인 회수 <b>${state.collected}</b> · 골드 <b>${state.gold}</b><br>6라운드 · ${DIFFICULTIES[state.difficulty].name} · 코인 물리 전투</p>${difficultyMarkup()}<button class="cta" id="restart">다시 도전하기 ✦</button>`;
+$('overlay').hidden=false;$('restart').onclick=start;installDifficultyButtons($('modal'));
 }
 function refresh(){if(!state)return;
 $('hp').textContent=Math.max(0,Math.ceil(state.hp));$('shield').textContent=Math.floor(state.shield);
 $('stage').textContent=`CHAPTER ${['I','II','III','IV','V','VI'][state.wave]} · ARTISAN FORGE`;
-$('clock').textContent=`${String(Math.floor(state.time/60)).padStart(2,'0')}:${String(Math.floor(state.time%60)).padStart(2,'0')}`;
+const elapsed=Math.max(0,state.time-state.waveStart);
+const left=Math.max(0,state.stageTime-elapsed);
+$('clock').textContent=(state.enraged?'RAGE ':'')+String(Math.floor(left/60)).padStart(2,'0')+':'+String(Math.floor(left%60)).padStart(2,'0');
 $('enemybar').style.width=`${clamp(state.enemy/state.maxEnemy,0,1)*100}%`;
 $('enemyname').textContent=waveData[state.wave].name;
 $('enemyhp').textContent=`${Math.ceil(state.enemy)} / ${state.maxEnemy}`;
@@ -1142,6 +1182,9 @@ $('combo').textContent=`×${Math.max(1,state.combo)}`;
 $('bombs').textContent=`×${state.bomb}`;$('storms').textContent=`×${state.storm}`;
 $('wall').textContent=state.wall>0?`${Math.ceil(state.wall)}s`:state.wallCooldown>0?`${Math.ceil(state.wallCooldown)}s`:'READY';
 $('shake').textContent=`${Math.floor(state.shake)}%`;
+$('boost').textContent=state.overdriveReady?'READY':Math.ceil(Math.max(0,10-state.overdriveCharge))+'s';
+const effectMessage=state.mode==='playing'?currentMechanicHint():'';$('stageEffect').hidden=!effectMessage;
+if(effectMessage)$('stageEffect').textContent=effectMessage;
 const warned=state.mode==='playing'&&state.warning>0&&state.threatLane>=0;
 $('threat').hidden=!warned;
 if(warned){
@@ -1152,7 +1195,7 @@ if(warned){
 }
 $('feverChip').hidden=state.fever<=0||state.mode!=='playing';
 if(state.fever>0)$('feverChip').textContent='✦ FEVER '+state.fever.toFixed(1)+'s';
-root.querySelectorAll('[data-skill]').forEach(el=>{const s=el.dataset.skill;el.classList.toggle('active',state.selected===s);el.disabled=(s==='bomb'&&state.bomb<=0)||(s==='storm'&&state.storm<=0)||(s==='wall'&&state.wallCooldown>0)||(s==='shake'&&state.shake<100)});
+root.querySelectorAll('[data-skill]').forEach(el=>{const s=el.dataset.skill;el.classList.toggle('active',state.selected===s);el.disabled=(s==='bomb'&&state.bomb<=0)||(s==='storm'&&state.storm<=0)||(s==='wall'&&state.wallCooldown>0)||(s==='shake'&&state.shake<100)||(s==='boost'&&!state.overdriveReady)});
 }
 // 3-axis coin dynamics with actual gravity, separate vertical/horizontal contacts and angular wobble.
 // A lightweight mobile-oriented rigid-disk solver; it is NOT a full cylinder-vs-cylinder engine.
@@ -1491,7 +1534,8 @@ for(const ring of rings){
 }
 if(state?.fxBoost>.2){ctx.save();ctx.globalAlpha=state.fxBoost*.065;ctx.fillStyle='#f4be96';ctx.fillRect(0,0,CW,CH);ctx.restore()}
 }
-function start(){initState('playing');$('overlay').hidden=true;showBanner('THE VAULT AWAKENS');try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume()}catch{} }
+function start(){initState('playing');$('overlay').hidden=true;showBanner('THE VAULT AWAKENS · '+DIFFICULTIES[state.difficulty].name);try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume()}catch{} }
+$('start').insertAdjacentHTML('beforebegin',difficultyMarkup());installDifficultyButtons($('modal'));
 $('start').onclick=start;
 $('mobileMode').onclick=()=>{
   try{const url=new URL(location.href);url.searchParams.set('lite','1');location.assign(url.href);}
