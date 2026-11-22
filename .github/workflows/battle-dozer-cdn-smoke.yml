@@ -49,6 +49,7 @@ jobs:
         run: |
           node <<'JS'
           const {chromium,webkit}=require('playwright');
+          const fs=require('fs');fs.mkdirSync('artifacts',{recursive:true});
           (async()=>{
             for(const [engine,launcher] of [['chromium',chromium],['webkit',webkit]]){
             const browser=await launcher.launch({headless:true});
@@ -77,6 +78,21 @@ jobs:
                 const after=await page.evaluate(()=>({mode:window.__battleDozerDebug?.state?.mode,drops:window.__battleDozerDebug?.state?.drops||window.__battleDozerDebug?.state?.coinsDropped||0,coins:window.__battleDozerDebug?.coins?.length,world3d:window.__battleDozerDebug?.metrics()?.world3d}));
                 console.log('SMOKE',JSON.stringify({engine,lite,before,after,errors}));
                 if(after.mode!=='playing'||!after.coins||errors.length)throw new Error('Mobile game failed: '+JSON.stringify({lite,after,errors}));
+                await page.locator('#codex').click({timeout:12000});
+                const gallery=await page.evaluate(()=>({
+                  visible:!document.querySelector('#armory').hidden,
+                  coins:document.querySelectorAll('#coinGallery .mintCard img').length,
+                  enemies:document.querySelectorAll('#foeGallery .foeItem').length,
+                  allLoaded:[...document.querySelectorAll('#coinGallery img')].every(img=>img.complete&&img.naturalWidth>0),
+                  inCodex:window.__battleDozerDebug?.state?.mode==='codex'
+                }));
+                console.log('GALLERY',JSON.stringify({engine,lite,gallery}));
+                if(!gallery.visible||gallery.coins!==4||gallery.enemies!==6||!gallery.allLoaded||!gallery.inCodex)
+                  throw new Error('Coin/character gallery broken '+JSON.stringify(gallery));
+                if(engine==='chromium'&&!lite)await page.screenshot({path:'artifacts/artisan-collection.png'});
+                await page.locator('#codexClose').click();
+                if(await page.evaluate(()=>window.__battleDozerDebug?.state?.mode)!=='playing')throw new Error('Gallery did not resume gameplay');
+                if(engine==='chromium'&&!lite)await page.screenshot({path:'artifacts/artisan-phone-3d.png'});
                 const gameplay=await page.evaluate(()=>{
                   const d=window.__battleDozerDebug,s=d.state;
                   s.warning=0;s.bossStun=0;s.enemyTimer=.01;
@@ -114,20 +130,32 @@ jobs:
                 console.log('AIM',JSON.stringify({engine,lite,aiming}));
                 if(aiming.error>9)throw new Error('Camera-aware aiming failed: '+JSON.stringify({engine,lite,aiming}));
                 const fullRun=await page.evaluate(()=>{
-                  const d=window.__battleDozerDebug,s=d.state;
-                  s.enemy=2;d.deal(20);
-                  const secondUpgrade=s.mode==='upgrade'&&s.wave===1;
-                  if(secondUpgrade)document.querySelector('[data-choose]').click();
-                  const reachedBoss=s.wave===2&&s.mode==='playing';
-                  if(reachedBoss){s.enemy=2;d.deal(20);}
-                  return {secondUpgrade,reachedBoss,victory:s.mode==='victory'};
+                  const d=window.__battleDozerDebug,s=d.state,visited=[s.wave];
+                  let bossWaves=0,guard=0;
+                  while(s.mode==='playing'&&guard++<7){
+                    if(s.wave>=3)bossWaves++;
+                    s.enemy=2;d.deal(20);
+                    if(s.mode==='upgrade'){
+                      const c=document.querySelector('[data-choose]');
+                      if(!c)break;
+                      c.click();visited.push(s.wave);
+                    }
+                  }
+                  return {visited,bossWaves,victory:s.mode==='victory',wave:s.wave,mode:s.mode};
                 });
                 console.log('FULL_RUN',JSON.stringify({engine,lite,fullRun}));
-                if(!fullRun.secondUpgrade||!fullRun.reachedBoss||!fullRun.victory)
-                  throw new Error('3-wave campaign failed: '+JSON.stringify({engine,lite,fullRun}));
+                if(fullRun.visited.join(',')!=='1,2,3,4,5'||fullRun.bossWaves!==3||!fullRun.victory)
+                  throw new Error('6-wave campaign failed: '+JSON.stringify({engine,lite,fullRun}));
                 await page.close();
               }
             }finally{await browser.close()}
             }
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
+      - name: Upload Artisan visual QA captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: battle-dozer-artisan-visuals
+          path: artifacts/*.png
+          if-no-files-found: ignore
