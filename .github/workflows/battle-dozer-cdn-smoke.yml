@@ -14,6 +14,8 @@ permissions:
 jobs:
   mobile:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
     timeout-minutes: 12
     steps:
       - name: Checkout
@@ -32,13 +34,15 @@ jobs:
           test -s /tmp/bd.html
           grep -q 'BATTLE DOZER' /tmp/bd.html
           grep -q '__battleDozerDebug' /tmp/bd.html
-          curl -ILsS "$url" | grep -i -E 'HTTP/|content-type' | tail -5
+          curl -LsS -D /tmp/bd-headers.txt -o /tmp/bd.html "$url"
+          grep -i -E 'HTTP/|content-type' /tmp/bd-headers.txt | tail -5
+          grep -qi 'content-type: text/html' /tmp/bd-headers.txt
       - name: Install Playwright
         shell: bash
         run: |
           npm --version
           npm install --no-save --no-package-lock playwright@1.58.2
-          npx playwright install --with-deps chromium
+          npx playwright --version
       - name: Browser smoke test (mobile + fallback)
         shell: bash
         run: |
