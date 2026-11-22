@@ -99,18 +99,58 @@ let gl=null;
 if(!prefer2D){try{gl=canvas.getContext('webgl2',{alpha:true,antialias:false,stencil:false,depth:true,premultipliedAlpha:false,powerPreference:'default'});}catch(err){console.warn('[BattleDozer] WebGL2 unavailable',err);}}
 
 const ctx=fxCanvas.getContext('2d');const $=id=>document.getElementById(id),T=Math.PI*2;
-const rand=(a,b)=>a+Math.random()*(b-a),clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+let rngState=(Date.now()>>>0)||1,forcedSeed=null;
+function seededFloat(){rngState^=rngState<<13;rngState^=rngState>>>17;rngState^=rngState<<5;return(rngState>>>0)/4294967296}
+function setRunSeed(seed){rngState=(Number(seed)>>>0)||1}
+const rand=(a,b)=>a+seededFloat()*(b-a),clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 let state=null,coins=[],particles=[],numbers=[],slashes=[],rings=[],lastTick=0,frameAcc=0,press=false,hold=0,frameN=0,timer=null;
 let CW=540,CH=960,DPR=1,project=(x,y,z)=>({x:CW/2,y:CH/2,front:true}),draw3d=()=>{},updateCamera=()=>{},coinAtlas=null,cameraMode=0,cameraBlend=0;
 const worldZ=z=>5.28-z*.865;
 const waveData=[
-{name:'DUSK RAIDER',hp:580,damage:12,color:'#e69b8d',class:'RAIDER',boss:false},
-{name:'AEGIS GUARD',hp:890,damage:14,color:'#a0c1df',class:'SHIELD',boss:false},
-{name:'RUNE CASTER',hp:1120,damage:15,color:'#c7a7ff',class:'MAGE',boss:false},
-{name:'IRON GOLEM',hp:1960,damage:18,color:'#f3be80',class:'GOLEM',boss:true},
-{name:'ABYSS COLOSSUS',hp:2900,damage:21,color:'#b8a6fc',class:'COLOSSUS',boss:true},
-{name:'ECLIPSE TITAN',hp:3800,damage:24,color:'#ffdc99',class:'TITAN',boss:true}
+{name:'DUSK RAIDER',hp:500,damage:11,color:'#e69b8d',class:'RAIDER',boss:false,time:85,goal:40},
+{name:'IRON GOLEM',hp:1400,damage:17,color:'#f3be80',class:'GOLEM',boss:true,time:140,goal:75},
+{name:'AEGIS GUARD',hp:750,damage:13,color:'#a0c1df',class:'SHIELD',boss:false,time:105,goal:55},
+{name:'ABYSS COLOSSUS',hp:2100,damage:20,color:'#b8a6fc',class:'COLOSSUS',boss:true,time:150,goal:85},
+{name:'RUNE CASTER',hp:900,damage:15,color:'#c7a7ff',class:'MAGE',boss:false,time:110,goal:60},
+{name:'ECLIPSE TITAN',hp:2900,damage:24,color:'#ffdc99',class:'TITAN',boss:true,time:180,goal:110}
 ];
+const DIFFICULTIES={
+ normal:{name:'NORMAL',telegraph:7.5,rocks:1,damage:.75,reward:1,ammo:68,shield:14,enemyHp:.87},
+ challenge:{name:'CHALLENGE',telegraph:6.5,rocks:2,damage:1,reward:1.25,ammo:60,shield:8,enemyHp:1},
+ nightmare:{name:'NIGHTMARE',telegraph:5.5,rocks:3,damage:1.25,reward:1.7,ammo:55,shield:5,enemyHp:1.08}
+};
+const DIFFICULTY_ORDER=['normal','challenge','nightmare'];
+let selectedDifficulty='normal',unlockedDifficulty=0,sessionEvents=[];
+try{unlockedDifficulty=Math.max(0,Math.min(2,Number(localStorage.getItem('bd_difficulty_unlock'))||0))}catch{}
+function difficultySettings(){return DIFFICULTIES[selectedDifficulty]||DIFFICULTIES.normal}
+function chooseDifficulty(id){
+ const index=DIFFICULTY_ORDER.indexOf(id);
+ if(index<0||index>unlockedDifficulty)return false;
+ selectedDifficulty=id;
+ document.querySelectorAll('[data-difficulty]').forEach(el=>{
+  el.classList.toggle('active',el.dataset.difficulty===id);
+  el.setAttribute('aria-pressed',String(el.dataset.difficulty===id));
+ });
+ return true;
+}
+function difficultyMarkup(){
+ return '<div class="difficultyBox"><b>DIFFICULTY</b><div class="difficultyChoices">'+DIFFICULTY_ORDER.map((id,i)=>
+ '<button type="button" class="difficultyOption'+(id===selectedDifficulty?' active':'')+'" data-difficulty="'+id+'" '+(i>unlockedDifficulty?'disabled title="이전 난이도 클리어 후 해금"':'')+' aria-pressed="'+(id===selectedDifficulty)+'">'+(i>unlockedDifficulty?'🔒 ':'')+DIFFICULTIES[id].name+'</button>'
+ ).join('')+'</div><small>클리어할수록 새로운 난이도가 열립니다</small></div>';
+}
+function installDifficultyButtons(host){host.querySelectorAll('[data-difficulty]').forEach(el=>el.addEventListener('click',()=>chooseDifficulty(el.dataset.difficulty)))}
+function trackGame(event,data={}){
+ if(!state)return;
+ sessionEvents.push({type:event,t:Math.round(state.time*100)/100,stage:state.wave,difficulty:state.difficulty,...data});
+ if(sessionEvents.length>480)sessionEvents.shift();
+}
+function stageEnemyHp(index){return Math.round(waveData[index].hp*difficultySettings().enemyHp)}
+function saveRunSummary(won){
+ if(!state)return;
+ const summary={won,difficulty:state.difficulty,seed:state.seed,elapsed:Math.round(state.time),best:state.best,
+ drops:state.shots,coins:state.collected,lost:state.lost,parries:state.parries,fevers:state.feverTimes,wave:state.wave,events:sessionEvents.slice(-120)};
+ try{const previous=JSON.parse(localStorage.getItem('bd_run_history')||'[]');previous.push(summary);localStorage.setItem('bd_run_history',JSON.stringify(previous.slice(-20)))}catch{}
+}
 if(gl){
 try{
 const vertex=`#version 300 es
@@ -902,21 +942,26 @@ function sound(type='coin'){
 const abilities=[{name:'BLOSSOM EDGE',desc:'일반 코인 피해 +28%',fn:()=>state.blade*=1.28},{name:'TEMPEST SIGIL',desc:'번개·폭탄·궁극기 피해 +35%',fn:()=>state.magic*=1.35},{name:'GILDED WARD',desc:'HP +35 · 실드 +15',fn:()=>{state.hp=Math.min(100,state.hp+35);state.shield+=15}},{name:'ECHO OF GOLD',desc:'8콤보 이후 피해 +30%',fn:()=>state.chainBoost+=.3},{name:'DEEP POCKET',desc:'최대 코인 수 +20 · 즉시 +20',fn:()=>{state.maxAmmo+=20;state.ammo+=20}},{name:'QUICKENING',desc:'마나 필요량 12 → 10',fn:()=>state.cost=10},{name:'COUNTER FORGE',desc:'보스 공격 차단에 필요한 코인 -1',fn:()=>state.counterExpert=true},{name:'GEAR OVERDRIVE',desc:'푸셔 왕복 속도 +15%',fn:()=>state.pusherBoost*=1.15},{name:'FEVER ENGINE',desc:'피버 발동 기준 -3콤보 · 지속 +3초',fn:()=>{state.feverThreshold=Math.max(8,state.feverThreshold-3);state.feverDuration+=3}}];
 function initState(mode='playing'){
 coins.length=0;particles.length=0;numbers.length=0;slashes.length=0;rings.length=0;
-state={mode,time:0,stage:0,wave:0,hp:100,shield:8,mana:0,cost:12,ammo:60,maxAmmo:85,bomb:3,storm:3,selected:'normal',pusher:2.55,prevPusher:2.55,wall:0,wallCooldown:0,shake:0,regen:0,enemyTimer:13,warning:0,enemy:waveData[0].hp,maxEnemy:waveData[0].hp,attack:0,hit:0,hurt:0,combo:0,comboT:-10,best:0,gold:0,collected:0,lost:0,shots:0,lastCollectTime:0,blade:1,magic:1,chainBoost:0,aimX:0,fxBoost:0,cameraKick:0,impact:0,clink:0,pusherPhase:0,pusherBoost:1,threatLane:-1,threatNeed:0,threatCount:0,parries:0,missed:0,bossStun:0,fever:0,feverCooldown:0,feverThreshold:13,feverDuration:6,feverTimes:0,pointerScreenX:NaN,lastAimDisplayX:NaN};
+if(mode==='playing')setRunSeed(forcedSeed??((Date.now()^(Math.floor(performance.now()*1000)))>>>0));
+sessionEvents.length=0;
+const difficulty=difficultySettings();
+state={mode,time:0,stage:0,wave:0,hp:100,shield:difficulty.shield,mana:0,cost:12,ammo:difficulty.ammo,maxAmmo:85,bomb:3,storm:3,difficulty:selectedDifficulty,seed:rngState,waveStart:0,enraged:false,stageTime:waveData[0].time,
+ shieldLane:-1,shieldTimer:0,jamLane:-1,jamTimer:0,boardTilt:0,tiltTimer:0,tiltSign:1,weakLane:-1,weakTimer:0,curseTimer:12,
+ overdriveReady:false,overdriveCharge:0,pushBurst:0,threatPrimed:false,threatFalls:0,threatFallsNeed:1,golemCleared:0,selected:'normal',pusher:2.55,prevPusher:2.55,wall:0,wallCooldown:0,shake:0,regen:0,enemyTimer:13,warning:0,enemy:stageEnemyHp(0),maxEnemy:stageEnemyHp(0),attack:0,hit:0,hurt:0,combo:0,comboT:-10,best:0,gold:0,collected:0,lost:0,shots:0,lastCollectTime:0,blade:1,magic:1,chainBoost:0,aimX:0,fxBoost:0,cameraKick:0,impact:0,clink:0,pusherPhase:0,pusherBoost:1,threatLane:-1,threatNeed:0,threatCount:0,parries:0,missed:0,bossStun:0,fever:0,feverCooldown:0,feverThreshold:13,feverDuration:6,feverTimes:0,pointerScreenX:NaN,lastAimDisplayX:NaN};
 // Initialize a crowded three-dimensional field: first layer, overlapping second tier and clustered third tier.
 const base=[];
 for(let row=0;row<10;row++)for(let col=0;col<11;col++){
  const x=(col-5)*.746+((row%2)*.365)+rand(-.11,.11),z=4.60+row*.79+rand(-.10,.10);
- if(Math.abs(x)<4.02&&Math.random()>.085){
+ if(Math.abs(x)<4.02&&seededFloat()>.085){
  const c=makeCoin('normal',x,z,0);base.push(c);coins.push(c);
  }
 }
-const raised=base.filter(c=>c.z>6.5&&c.z<11.55&&Math.abs(c.x)<3.3).sort(()=>Math.random()-.5);
+const raised=base.filter(c=>c.z>6.5&&c.z<11.55&&Math.abs(c.x)<3.3).sort(()=>seededFloat()-.5);
 for(const c of raised.slice(0,42)){
  const a=makeCoin('normal',c.x+rand(-.10,.10),c.z+rand(-.09,.09),1);
  coins.push(a);
 }
-const center=base.filter(c=>c.z>8.3&&c.z<10.7&&Math.abs(c.x)<2.0).sort(()=>Math.random()-.5);
+const center=base.filter(c=>c.z>8.3&&c.z<10.7&&Math.abs(c.x)<2.0).sort(()=>seededFloat()-.5);
 for(const c of center.slice(0,13)){
  const a=makeCoin('normal',c.x+rand(-.065,.065),c.z+rand(-.08,.08),2);
  coins.push(a);
@@ -1068,7 +1113,7 @@ refresh();
 function waveWin(){if(state.mode!=='playing')return;
 sound('power');state.gold+=waveData[state.wave].boss?135:65;state.combo=0;state.warning=0;state.threatLane=-1;state.bossStun=0;
 if(state.wave===waveData.length-1){state.mode='victory';showResult(true);return}
-state.mode='upgrade';let pool=[...abilities].sort(()=>Math.random()-.5).slice(0,3);
+state.mode='upgrade';let pool=[...abilities].sort(()=>seededFloat()-.5).slice(0,3);
 $('modal').innerHTML=`<div class="overline">CHAPTER ${state.wave+1} CONQUERED</div><div class="emblem">✦</div><h2>BLESSING</h2><p>다음 전투를 위한 축복을 골라.</p>${pool.map((a,i)=>`<button class="choice" data-choose="${i}"><b>✦ ${a.name}</b><small>${a.desc}</small></button>`).join('')}`;
 $('overlay').hidden=false;
 $('modal').querySelectorAll('[data-choose]').forEach(el=>el.onclick=()=>{
