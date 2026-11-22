@@ -109,10 +109,22 @@ jobs:
                   const d=window.__battleDozerDebug,s=d.state;
                   const zz=d.worldZ(Math.max(3.95,s.pusher+1.2));
                   const projected=d.projectPoint(s.aimX,.18,zz);
-                  return {x:s.aimX,screenX:projected.x,expectX:240,error:Math.abs(projected.x-240)};
+                  return {x:s.aimX,screenX:projected.x,atInput:s.lastAimDisplayX,expectX:240,error:Math.abs(s.lastAimDisplayX-240)};
                 });
                 console.log('AIM',JSON.stringify({engine,lite,aiming}));
                 if(aiming.error>9)throw new Error('Camera-aware aiming failed: '+JSON.stringify({engine,lite,aiming}));
+                const fullRun=await page.evaluate(()=>{
+                  const d=window.__battleDozerDebug,s=d.state;
+                  s.enemy=2;d.deal(20);
+                  const secondUpgrade=s.mode==='upgrade'&&s.wave===1;
+                  if(secondUpgrade)document.querySelector('[data-choose]').click();
+                  const reachedBoss=s.wave===2&&s.mode==='playing';
+                  if(reachedBoss){s.enemy=2;d.deal(20);}
+                  return {secondUpgrade,reachedBoss,victory:s.mode==='victory'};
+                });
+                console.log('FULL_RUN',JSON.stringify({engine,lite,fullRun}));
+                if(!fullRun.secondUpgrade||!fullRun.reachedBoss||!fullRun.victory)
+                  throw new Error('3-wave campaign failed: '+JSON.stringify({engine,lite,fullRun}));
                 await page.close();
               }
             }finally{await browser.close()}
