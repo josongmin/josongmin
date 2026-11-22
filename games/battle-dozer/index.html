@@ -1808,11 +1808,35 @@ if(gl){try{const url=new URL(location.href);url.searchParams.set('lite','1');loc
 }
 requestAnimationFrame(frame);}
 initState('demo');requestAnimationFrame(frame);
-window.__battleDozerDebug={get state(){return state},get coins(){return coins},start,drop:shot,physics,step,collect,deal:dmg,
-setView:i=>{cameraMode=clamp(i|0,0,2)},projectPoint:(x,y,z)=>project(x,y,z),worldZ,
-metrics:()=>({engine:'Eclipse Forge v4',count:coins.length,maxHeight:Math.max(0,...coins.map(c=>c.y)),tipped:coins.filter(c=>Math.abs(c.rx)>.12||Math.abs(c.rz)>.12).length,
-stacked:coins.filter(c=>coins.some(o=>o!==c&&o.y<c.y-.095&&o.y>c.y-.24&&Math.hypot(o.x-c.x,o.z-c.z)<.48)).length,
-falling:coins.filter(c=>c.falling).length, collected:state?.collected||0,world3d:!!gl,parries:state?.parries||0,threatLane:state?.threatLane??-1,threatCount:state?.threatCount||0,fever:state?.fever||0,feverTimes:state?.feverTimes||0}),
-render:()=>draw3d(performance.now()/1000)};
+window.__battleDozerDebug={
+ get state(){return state},
+ get coins(){return coins},
+ get events(){return sessionEvents},
+ get profiles(){return DIFFICULTIES},
+ get stages(){return waveData},
+ get difficulty(){return selectedDifficulty},
+ get unlockLevel(){return unlockedDifficulty},
+ start,drop:shot,physics,step,collect,deal:dmg,counter:counterBoss,
+ boost:triggerBoost,spawnHazard,cleanCurses,beginThreat,landBossAttack,selectDifficulty:chooseDifficulty,
+ setSeed:seed=>{forcedSeed=(Number(seed)>>>0)||1;setRunSeed(forcedSeed);return rngState},
+ clearForcedSeed:()=>{forcedSeed=null},
+ setView:i=>{cameraMode=clamp(i|0,0,2)},
+ projectPoint:(x,y,z)=>project(x,y,z),worldZ,laneOfX,
+ metrics:()=>({
+  engine:'Balance Forge v2',difficulty:state?.difficulty||'normal',seed:state?.seed||0,
+  count:coins.length,maxHeight:Math.max(0,...coins.map(c=>c.y)),
+  tipped:coins.filter(c=>Math.abs(c.rx)>.12||Math.abs(c.rz)>.12).length,
+  stacked:coins.filter(c=>coins.some(o=>o!==c&&o.y<c.y-.095&&o.y>c.y-.24&&Math.hypot(o.x-c.x,o.z-c.z)<.48)).length,
+  falling:coins.filter(c=>c.falling).length,collected:state?.collected||0,
+  world3d:!!gl,parries:state?.parries||0,threatLane:state?.threatLane??-1,
+  primed:!!state?.threatPrimed,threatFalls:state?.threatFalls||0,
+  threatCount:state?.threatCount||0,fever:state?.fever||0,feverTimes:state?.feverTimes||0,
+  stage:state?.wave||0,stageElapsed:(state?.time||0)-(state?.waveStart||0),
+  boostReady:!!state?.overdriveReady,tilt:state?.boardTilt||0,
+  curse:coins.filter(c=>c.kind==='curse').length,
+  events:sessionEvents.length
+ }),
+ render:()=>draw3d(performance.now()/1000)
+};
 })();
 </script></body></html>
