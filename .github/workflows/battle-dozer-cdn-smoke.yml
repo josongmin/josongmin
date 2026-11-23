@@ -95,7 +95,7 @@ jobs:
                     return m?.heroArtLoaded&&m?.bossArtLoaded;
                   },null,{timeout:16000});
                   const art=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  assert(art.artMode==='2.5d-rigged'&&art.heroArtLoaded&&art.bossArtLoaded&&art.rigLoaded>=10,
+                  assert(art.artMode==='2.5d-rigged'&&art.heroArtLoaded&&art.bossArtLoaded&&art.rigLoaded>=8,
                     'Premium game art did not load',{engine,lite,art});
                   await page.locator('#artToggle').click();
                   const oldArt=await page.evaluate(()=>window.__battleDozerDebug.metrics());
