@@ -2285,8 +2285,8 @@ function drawCinematicActors(t){
   c.drawImage(im,-w/2,-h*.56,w,h);
   c.restore();
  }
- if(fade<1&&old!==sprite)spriteDraw(old,1-fade);
- spriteDraw(sprite,fade);
+ // Never double-expose incompatible full-body key poses: the overlap looked like a ghost.
+ spriteDraw(sprite,1);
  // Short, translucent impact cut, not a full-screen white flash.
  if(hitWindow){
   c.save();c.globalAlpha=Math.max(0,.35*(1-sinceHit/.60)*v.hitStrength);
