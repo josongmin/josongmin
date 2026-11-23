@@ -59,7 +59,9 @@ jobs:
               assert(await consent.count()>0,'Missing game or third-party consent screen',{status:response?.status(),title:await page.title()});
               await consent.click({timeout:15000});
             }
-            await page.locator('#start').waitFor({timeout:18000});
+            await page.locator('#start').waitFor({timeout:60000});
+            // The button arrives before the 1.46 MB inlined art scripts finish parsing.
+            await page.waitForFunction(()=>Boolean(window.__battleDozerDebug&&window.BATTLE_DOZER_RIG&&window.BATTLE_DOZER_MOTION_PARTS),null,{timeout:65000});
             return {url:page.url(),title:await page.title()};
           }
           async function main(){
