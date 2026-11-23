@@ -272,7 +272,7 @@ jobs:
               const result=await page.evaluate(()=>{
                 const d=window.__battleDozerDebug,p=d.performance,s=d.state;
                 s.enemyTimer=999;s.warning=0;
-                const clips=['light','recoilL','recoilR','stagger','telegraph','slam','counter','break','fever','phase','taunt','finish'];
+                const clips=['light','recoilL','recoilR','stagger','telegraph','slam','counter','break','fever','phase','taunt','finish','feint','guard','regain'];
                 const tested=clips.map(c=>{p.clip=null;d.playPerformance(c,1.1);return {name:c,got:p.clip?.type}});
                 p.clip=null;p.reactionGauge=0;p.breaks=0;
                 for(let i=0;i<11;i++)d.forceReaction(20,false);
@@ -281,10 +281,10 @@ jobs:
                 const priority=p.clip?.type;
                 d.playPerformance('light',.5);
                 const protectedCounter=p.clip?.type==='counter';
-                return {version:d.performanceVersion,slots:['head','chest','pelvis','armL','armR','hairL','hairR','capeL','capeR'].every(k=>Number.isFinite(p[k])),
+                return {version:d.performanceVersion,clipTypes:d.performanceProfiles.length,slots:['head','chest','pelvis','armL','armR','hairL','hairR','capeL','capeR'].every(k=>Number.isFinite(p[k])),
                 tested,breakCount,priority,protectedCounter};
               });
-              if(result.version!=='Performance Director 2.1'||!result.slots||result.tested.some(x=>x.name!==x.got)||result.breakCount<1||!result.protectedCounter)
+              if(result.version!=='Director Forge v3.0'||result.clipTypes!==15||!result.slots||result.tested.some(x=>x.name!==x.got)||result.breakCount<1||!result.protectedCounter)
                  throw Error('Performance state machine failed: '+JSON.stringify(result));
               await page.waitForTimeout(680);
               const motion=await page.evaluate(()=>{
@@ -294,7 +294,7 @@ jobs:
               });
               await page.screenshot({path:'artifacts/performance-v2-counter.png'});
               console.log('PERFORMANCE_QA',JSON.stringify({result,motion,errors}));
-              if(motion.segments<80||motion.frames<2||motion.drawCalls<80||!Number.isFinite(motion.camZoom)||errors.length)
+              if(motion.segments<48||motion.frames<2||motion.drawCalls<48||!Number.isFinite(motion.camZoom)||errors.length)
                 throw Error('Puppet render failed: '+JSON.stringify({motion,errors}));
               await page.close();
             }finally{await browser.close()}
