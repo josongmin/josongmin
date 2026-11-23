@@ -103,22 +103,44 @@ jobs:
                   await page.locator('#artToggle').click();
                   assert(await page.evaluate(()=>window.__battleDozerDebug.metrics().artMode)==='2.5d-rigged',
                     'Cinematic art toggle did not restore premium rendering');
-                  // Prove that runtime key poses really respond to the combat state, not a static poster.
-                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.mode='frozen';s.attack=.54;s.warning=2;s.bossStun=0;s.hit=0;});
-                  await page.waitForTimeout(260);
+                  // Kinetic Forge v3: test motion timeline, source-aligned body parts, and boss key poses.
+                  await page.waitForFunction(()=>window.__battleDozerDebug?.motionLayers.length===6,null,{timeout:16000});
+                  const layerKeys=await page.evaluate(()=>window.__battleDozerDebug.motionLayers.slice().sort());
+                  assert(layerKeys.join(',')==='capeLeft,capeRight,hairLeft,hairRight,heroBase,heroSword',
+                    'Motion layer images missing',{layerKeys});
+                  await page.evaluate(()=>{
+                    const d=window.__battleDozerDebug,s=d.state;
+                    s.mode='frozen';s.warning=2;s.hit=0;s.bossStun=0;
+                    d.playMotion('slash');d.motion.forcePhase=.19;
+                  });
+                  await page.waitForTimeout(250);
                   const poseWindup=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.attack=.23;s.warning=.31;});
-                  await page.waitForTimeout(260);
+                  await page.evaluate(()=>{
+                    const d=window.__battleDozerDebug,s=d.state;
+                    s.warning=.31;d.motion.forcePhase=.41;
+                  });
+                  await page.waitForTimeout(250);
                   const poseSlash=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.attack=0;s.warning=0;s.hit=.4;s.bossStun=2;});
-                  await page.waitForTimeout(260);
+                  await page.evaluate(()=>{
+                    const d=window.__battleDozerDebug,s=d.state;
+                    d.motion.forcePhase=null;s.warning=0;s.hit=.4;s.bossStun=2;d.playMotion('hit');
+                  });
+                  await page.waitForTimeout(250);
                   const poseStagger=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  assert(poseWindup.rigPose==='windup'&&poseWindup.bossPose==='boss_telegraph'
-                    &&poseSlash.rigPose==='slash'&&poseSlash.bossPose==='boss_slam'
-                    &&poseStagger.bossPose==='boss_stagger','Rig state frames failed',{poseWindup,poseSlash,poseStagger});
-                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.mode='playing';s.attack=0;s.warning=0;s.hit=0;s.bossStun=0;});
-                  console.log('RIG_POSES',JSON.stringify({engine,lite,windup:poseWindup.rigPose,slash:poseSlash.rigPose,
-                    telegraph:poseWindup.bossPose,slam:poseSlash.bossPose,stagger:poseStagger.bossPose,loaded:art.rigLoaded}));
+                  assert(poseWindup.rigPose==='anticipate'&&poseWindup.bossPose==='boss_telegraph'
+                    &&poseSlash.rigPose==='strike'&&poseSlash.bossPose==='boss_slam'
+                    &&poseStagger.bossPose==='boss_stagger','Kinetic combat timeline failed',
+                    {poseWindup,poseSlash,poseStagger});
+                  await page.evaluate(()=>{
+                    const s=window.__battleDozerDebug.state;s.mode='playing';s.attack=0;
+                    s.warning=0;s.hit=0;s.bossStun=0;
+                    window.__battleDozerDebug.motion.forcePhase=null;
+                  });
+                  console.log('KINETIC_POSES',JSON.stringify({
+                    engine,lite,windup:poseWindup.rigPose,active:poseSlash.rigPose,
+                    telegraph:poseWindup.bossPose,slam:poseSlash.bossPose,stagger:poseStagger.bossPose,
+                    parts:layerKeys,artLoaded:art.rigLoaded
+                  }));
                   await page.locator('#gl').tap({position:{x:181,y:412}});
                   await page.waitForTimeout(400);
                   assert(errors.length===0,'JS errors after touch',{errors});
