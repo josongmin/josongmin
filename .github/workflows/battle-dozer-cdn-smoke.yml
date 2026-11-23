@@ -113,6 +113,8 @@ jobs:
                   await page.evaluate(()=>{
                     const d=window.__battleDozerDebug,s=d.state;
                     s.mode='frozen';s.warning=2;s.hit=0;s.bossStun=0;
+                    // Isolation: an earlier opening coin hit can leave a legitimate 0.29s boss recoil.
+                    d.motion.hitPulseStart=-100;d.motion.bossSlamStart=-100;
                     d.playMotion('slash');d.motion.forcePhase=.19;
                   });
                   await page.waitForTimeout(250);
