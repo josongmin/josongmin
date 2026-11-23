@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           url="https://raw.githack.com/josongmin/josongmin/${GITHUB_SHA}/games/battle-dozer/index.html"
           for i in {1..10}; do
-            code=$(curl -L -sS -o /tmp/bd.html -w "%{http_code}" --max-time 20 "$url" || true)
+            code=$(curl -L -sS -o /tmp/bd.html -w "%{http_code}" --max-time 75 "$url" || true)
             if [[ "$code" == "200" ]] && grep -q 'BATTLE DOZER' /tmp/bd.html; then break; fi
             echo "Attempt $i: HTTP $code"
             sleep 4
