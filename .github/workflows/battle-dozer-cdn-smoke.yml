@@ -1,4 +1,4 @@
-name: Battle Dozer — HTTPS Mobile Smoke Test
+name: Battle Dozer — Spotlight Boss Mobile QA
 
 on:
   push:
@@ -92,59 +92,38 @@ jobs:
                   const d0=await page.evaluate(()=>window.__battleDozerDebug?.metrics());
                   assert(d0&&d0.stage===0&&d0.difficulty==='normal'&&d0.count>70,'Game did not boot',d0);
                   assert(lite?!d0.world3d:d0.world3d,'WebGL/fallback mismatch',d0);
-                  await page.waitForFunction(()=>{
-                    const m=window.__battleDozerDebug?.metrics();
-                    return m?.heroArtLoaded&&m?.bossArtLoaded;
-                  },null,{timeout:16000});
-                  const art=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  assert(art.artMode==='2.5d-rigged'&&art.heroArtLoaded&&art.bossArtLoaded&&art.rigLoaded>=8,
-                    'Premium game art did not load',{engine,lite,art});
+                  // Spotlight Forge: only one adult fantasy boss in the centre; four HP-driven expressions.
+                  await page.waitForFunction(()=>window.__battleDozerDebug?.spotlightFrames?.length===4,null,{timeout:20000});
+                  const actor=await page.evaluate(()=>({
+                    loaded:window.__battleDozerDebug.spotlightFrames,
+                    mode:window.__battleDozerDebug.spotlight.pose,
+                    title:document.getElementById('enemyname').textContent,
+                    current:document.getElementById('spotlightPoseLabel').textContent,
+                    canvas:document.getElementById('actors').width
+                  }));
+                  assert(actor.loaded.join(',')==='poise,surprise,stagger,awaken'&&actor.title==='DUSK ENCHANTRESS',
+                    'Centre enemy or expression frames not ready',actor);
+                  const phases=await page.evaluate(()=>{
+                    const d=window.__battleDozerDebug,s=d.state;
+                    s.enemy=s.maxEnemy=435;s.warning=0;s.enemyTimer=999;s.bossStun=0;
+                    const seen=[];for(const damage of [120,150,100]){
+                      d.deal(damage);
+                      seen.push({phase:d.spotlight.phaseIndex,hp:s.enemy,hits:d.spotlight.hitCount});
+                    }
+                    return seen;
+                  });
+                  console.log('SPOTLIGHT_PHASES',JSON.stringify({engine,lite,phases,actor}));
+                  assert(phases.map(x=>x.phase).join(',')==='1,2,3',
+                    'HP phases did not reveal expressions',phases);
+                  await page.evaluate(()=>window.__battleDozerDebug.start());
+                  await page.waitForTimeout(250);
                   await page.locator('#artToggle').click();
                   const oldArt=await page.evaluate(()=>window.__battleDozerDebug.metrics());
                   assert(oldArt.artMode==='procedural','Legacy comparison toggle failed',oldArt);
                   await page.locator('#artToggle').click();
-                  assert(await page.evaluate(()=>window.__battleDozerDebug.metrics().artMode)==='2.5d-rigged',
-                    'Cinematic art toggle did not restore premium rendering');
-                  // Kinetic Forge v3: test motion timeline, source-aligned body parts, and boss key poses.
-                  await page.waitForFunction(()=>window.__battleDozerDebug?.motionLayers.length===6,null,{timeout:16000});
-                  const layerKeys=await page.evaluate(()=>window.__battleDozerDebug.motionLayers.slice().sort());
-                  assert(layerKeys.join(',')==='capeLeft,capeRight,hairLeft,hairRight,heroBase,heroSword',
-                    'Motion layer images missing',{layerKeys});
-                  await page.evaluate(()=>{
-                    const d=window.__battleDozerDebug,s=d.state;
-                    s.mode='frozen';s.warning=2;s.hit=0;s.bossStun=0;
-                    // Isolation: an earlier opening coin hit can leave a legitimate 0.29s boss recoil.
-                    d.motion.hitPulseStart=-100;d.motion.bossSlamStart=-100;
-                    d.playMotion('slash');d.motion.forcePhase=.19;
-                  });
-                  await page.waitForTimeout(250);
-                  const poseWindup=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  await page.evaluate(()=>{
-                    const d=window.__battleDozerDebug,s=d.state;
-                    s.warning=.31;d.motion.forcePhase=.41;
-                  });
-                  await page.waitForTimeout(250);
-                  const poseSlash=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  await page.evaluate(()=>{
-                    const d=window.__battleDozerDebug,s=d.state;
-                    d.motion.forcePhase=null;s.warning=0;s.hit=.4;s.bossStun=2;d.playMotion('hit');
-                  });
-                  await page.waitForTimeout(250);
-                  const poseStagger=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  assert(poseWindup.rigPose==='anticipate'&&poseWindup.bossPose==='boss_telegraph'
-                    &&poseSlash.rigPose==='strike'&&poseSlash.bossPose==='boss_slam'
-                    &&poseStagger.bossPose==='boss_stagger','Kinetic combat timeline failed',
-                    {poseWindup,poseSlash,poseStagger});
-                  await page.evaluate(()=>{
-                    const s=window.__battleDozerDebug.state;s.mode='playing';s.attack=0;
-                    s.warning=0;s.hit=0;s.bossStun=0;
-                    window.__battleDozerDebug.motion.forcePhase=null;
-                  });
-                  console.log('KINETIC_POSES',JSON.stringify({
-                    engine,lite,windup:poseWindup.rigPose,active:poseSlash.rigPose,
-                    telegraph:poseWindup.bossPose,slam:poseSlash.bossPose,stagger:poseStagger.bossPose,
-                    parts:layerKeys,artLoaded:art.rigLoaded
-                  }));
+                  assert(await page.evaluate(()=>window.__battleDozerDebug.spotlightFrames.length)===4,
+                    'Single enemy portrait did not return after toggle');
+                  console.log('SPOTLIGHT_READY',JSON.stringify({engine,lite,renderer:d0.world3d?'3D':'2D',phases}));
                   await page.locator('#gl').tap({position:{x:181,y:412}});
                   await page.waitForTimeout(400);
                   assert(errors.length===0,'JS errors after touch',{errors});
