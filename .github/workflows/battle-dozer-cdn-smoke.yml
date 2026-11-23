@@ -95,14 +95,30 @@ jobs:
                     return m?.heroArtLoaded&&m?.bossArtLoaded;
                   },null,{timeout:16000});
                   const art=await page.evaluate(()=>window.__battleDozerDebug.metrics());
-                  assert(art.artMode==='2.5d-premium'&&art.heroArtLoaded&&art.bossArtLoaded,
+                  assert(art.artMode==='2.5d-rigged'&&art.heroArtLoaded&&art.bossArtLoaded&&art.rigLoaded>=10,
                     'Premium game art did not load',{engine,lite,art});
                   await page.locator('#artToggle').click();
                   const oldArt=await page.evaluate(()=>window.__battleDozerDebug.metrics());
                   assert(oldArt.artMode==='procedural','Legacy comparison toggle failed',oldArt);
                   await page.locator('#artToggle').click();
-                  assert(await page.evaluate(()=>window.__battleDozerDebug.metrics().artMode)==='2.5d-premium',
+                  assert(await page.evaluate(()=>window.__battleDozerDebug.metrics().artMode)==='2.5d-rigged',
                     'Cinematic art toggle did not restore premium rendering');
+                  // Prove that runtime key poses really respond to the combat state, not a static poster.
+                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.mode='frozen';s.attack=.54;s.warning=2;s.bossStun=0;s.hit=0;});
+                  await page.waitForTimeout(260);
+                  const poseWindup=await page.evaluate(()=>window.__battleDozerDebug.metrics());
+                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.attack=.23;s.warning=.31;});
+                  await page.waitForTimeout(260);
+                  const poseSlash=await page.evaluate(()=>window.__battleDozerDebug.metrics());
+                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.attack=0;s.warning=0;s.hit=.4;s.bossStun=2;});
+                  await page.waitForTimeout(260);
+                  const poseStagger=await page.evaluate(()=>window.__battleDozerDebug.metrics());
+                  assert(poseWindup.rigPose==='windup'&&poseWindup.bossPose==='boss_telegraph'
+                    &&poseSlash.rigPose==='slash'&&poseSlash.bossPose==='boss_slam'
+                    &&poseStagger.bossPose==='boss_stagger','Rig state frames failed',{poseWindup,poseSlash,poseStagger});
+                  await page.evaluate(()=>{const s=window.__battleDozerDebug.state;s.mode='playing';s.attack=0;s.warning=0;s.hit=0;s.bossStun=0;});
+                  console.log('RIG_POSES',JSON.stringify({engine,lite,windup:poseWindup.rigPose,slash:poseSlash.rigPose,
+                    telegraph:poseWindup.bossPose,slam:poseSlash.bossPose,stagger:poseStagger.bossPose,loaded:art.rigLoaded}));
                   await page.locator('#gl').tap({position:{x:181,y:412}});
                   await page.waitForTimeout(400);
                   assert(errors.length===0,'JS errors after touch',{errors});
